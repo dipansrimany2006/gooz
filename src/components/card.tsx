@@ -7,7 +7,7 @@ interface CardProps {
 
 export default function Card({ name, icon, amount, isSpecial = false }: CardProps) {
   return (
-    <div className="relative w-32 h-32 flex items-center justify-center bg-[url('/yellow_card.png')] bg-contain bg-center bg-no-repeat">
+    <div className="relative w-40 h-40 flex items-center justify-center bg-[url('/yellow_card.png')] bg-contain bg-center bg-no-repeat">
       {/* <img 
         src="/yellow-card.png" 
         alt="card background" 
