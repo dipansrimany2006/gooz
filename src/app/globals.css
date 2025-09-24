@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Chewy&display=swap');
+
+* {
+  font-family: 'Chewy', cursive;
+}
 
 body {
   margin: 0;
