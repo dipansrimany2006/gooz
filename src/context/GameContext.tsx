@@ -1,5 +1,5 @@
 'use client'
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 interface Player {
   id: string;
@@ -51,6 +51,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [playerPositions, setPlayerPositions] = useState<PlayerPosition[]>([]);
   const [serverPlayers, setServerPlayers] = useState<Player[]>([]);
   const [diceRoll, setDiceRoll] = useState<number | null>(null);
+
+  // Load gameId from localStorage on mount
+  useEffect(() => {
+    const storedGameId = localStorage.getItem('gameId');
+    if (storedGameId && !gameId) {
+      setGameId(storedGameId);
+      console.log('GameProvider - Loaded gameId from localStorage:', storedGameId);
+    }
+  }, [gameId]);
 
   const value: GameContextType = {
     ws,
