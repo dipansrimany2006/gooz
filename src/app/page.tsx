@@ -16,7 +16,7 @@ export default function Home() {
         <ConnectWalletButton/>
       </div>
       <div className="flex items-center justify-evenly h-[calc(100vh-120px)]">
-        <Sidepanel/>
+        <Sidepanel roomid="12kfn345" />
         <div className='grid place-items-center'>
           <Board />
         </div>
