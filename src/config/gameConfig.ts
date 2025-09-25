@@ -4,7 +4,7 @@ export const GAME_CONFIG = {
   WS_URL: 'ws://localhost:8080',
 
   // Game Session Settings (Update these based on your current game)
-  GAME_ID: 'D17961A8', // Current game ID from server response
+  GAME_ID: '00BF80D3', // Current game ID from server response
 
   // Player Settings (Modify these for testing different players)
   PLAYER_ID: 'player123',
@@ -13,7 +13,7 @@ export const GAME_CONFIG = {
 
   // Game Settings
   AUTO_CREATE_GAME: false, // Set to true to create new game, false to join existing
-  AUTO_JOIN_EXISTING: false, // Set to true to join the existing game ID above - DISABLED FOR MANUAL TESTING
+  AUTO_JOIN_EXISTING: true, // Set to true to join the existing game ID above
 
   // Debug Settings
   ENABLE_CONSOLE_LOGS: true,

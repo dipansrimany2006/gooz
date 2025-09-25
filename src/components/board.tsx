@@ -50,16 +50,26 @@ const Board = () => {
   };
 
   const rollDice = () => {
+    console.log('🎲 DICE ROLL DEBUG:');
+    console.log('- WebSocket connected:', !!ws);
+    console.log('- Game ID:', gameId);
+    console.log('- Current Player:', currentPlayer);
+    console.log('- Player ID:', PLAYER_ID);
+    console.log('- Is my turn?:', currentPlayer === PLAYER_ID);
+
     if (ws && gameId && currentPlayer === PLAYER_ID) {
       const message = {
         type: 'ROLL_DICE',
         gameId: gameId,
         playerId: PLAYER_ID
       };
+      console.log('📤 Sending dice roll request:', message);
       ws.send(JSON.stringify(message));
-      console.log('Sent dice roll request:', message);
     } else {
-      console.log('Cannot roll dice - not connected or not your turn');
+      console.log('❌ Cannot roll dice:');
+      console.log('  - WebSocket:', ws ? 'Connected' : 'Disconnected');
+      console.log('  - Game ID:', gameId ? gameId : 'Missing');
+      console.log('  - Turn check:', currentPlayer === PLAYER_ID ? 'My turn' : 'Not my turn');
     }
   };
 
@@ -115,9 +125,15 @@ const Board = () => {
           break;
 
         case 'DICE_ROLLED':
-          console.log('Dice rolled:', message.diceRoll, 'New position:', message.newPosition);
-          setDiceRoll(message.diceRoll);
+          console.log('📥 DICE_ROLLED message received:');
+          console.log('- Dice Roll:', message.diceRoll);
+          console.log('- Player ID:', message.playerId);
+          console.log('- Server Position:', message.newPosition);
           const frontendPosition = mapServerToFrontend(message.newPosition);
+          console.log('- Frontend Position:', frontendPosition);
+          console.log('- Player Data:', message.player);
+
+          setDiceRoll(message.diceRoll);
           updatePlayerPosition(message.playerId, frontendPosition);
           break;
 
@@ -140,31 +156,20 @@ const Board = () => {
     }
   };
 
-  // WebSocket connection setup
-  const [diceRoll, setDiceRoll] = useState<number | null>(null);
-  const [playerPositions, setPlayerPositions] = useState<PlayerPosition[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState<string | null>(null);
+  // Local state for modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<{ name: string; amount: string; icon: string } | null>(null);
 
-  const randomSpeaker = () => {
-    console.log(1);
-    const roll = Math.floor(Math.random() * 6) + 1; // generates 1–6
-    setDiceRoll(roll);
-
-    // Simulate player movement when dice is rolled
-    if (currentPlayer && playerPositions.length > 0) {
-      simulatePlayerMovement(currentPlayer, roll);
-    }
-  }
 
   // Initialize demo players at GO (logical position 0, visual position 11)
   useEffect(() => {
     const connectWebSocket = () => {
       try {
+        console.log('🔄 Attempting to connect to WebSocket:', WS_URL);
         const websocket = new WebSocket(WS_URL);
 
         websocket.onopen = () => {
+          console.log('🔗 WebSocket connected successfully!');
           if (GAME_CONFIG.ENABLE_CONSOLE_LOGS) {
             console.log('WebSocket connected');
           }
@@ -208,7 +213,8 @@ const Board = () => {
         };
 
         websocket.onerror = (error) => {
-          console.error('WebSocket error:', error);
+          console.error('❌ WebSocket connection error:', error);
+          console.error('WS URL:', WS_URL);
         };
 
       } catch (error) {
