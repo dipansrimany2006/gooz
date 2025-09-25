@@ -4,6 +4,7 @@ import Card from '../components/card';
 import { useState } from 'react';
 import Sidepanel from '@/components/sidepanel';
 import Board from '@/components/board';
+import ConnectWalletButton from '../../components/ConnectWalletButton';
 
 export default function Home() {
 
@@ -12,6 +13,7 @@ export default function Home() {
       <Sidepanel/>
       <div className='grid place-items-center'>
         <Board />
+        <ConnectWalletButton/>
       </div>
     </div>
   );

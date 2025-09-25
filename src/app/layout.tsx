@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Chewy, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "@near-wallet-selector/modal-ui/styles.css"
+import { WalletProvider } from "../../context/WalletProvider";
 
 
 const chewy = Chewy({
@@ -20,12 +22,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <WalletProvider>
+       <html lang="en">
       <body
         className={`${chewy.variable} antialiased`}
       >
         {children}
       </body>
     </html>
+    </WalletProvider>
+   
   );
 }
