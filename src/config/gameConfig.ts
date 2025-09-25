@@ -53,7 +53,8 @@ export const PLAYER_CONFIGS = {
 export const POSITION_MAPPING = {
   // Server position -> Frontend position
   0: 0,   // GO -> GO
-  1: 1, 2: 2, 3: 3, 4: 4,      // Properties 1-4
+  1: 1, 
+  2: 2, 3: 3, 4: 4,      // Properties 1-4
   5: 11,  // JAIL -> JAIL position
   6: 12, 7: 13, 8: 14, 9: 5,   // Properties
   10: 4,  // Free Parking -> Free Parking

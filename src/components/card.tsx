@@ -15,14 +15,13 @@ interface CardProps {
   onClick?: () => void;
 }
 
-export default function Card({ name, icon, amount, isSpecial = false, position, players = [], onClick }: CardProps) {
+export default function Card({ name, icon, amount, isSpecial = false, position, players = [] }: CardProps) {
   // Filter players at this card's position (position is already transformed)
   const playersAtPosition = players.filter(player => player.currentPosition === position);
 
   return (
     <div
       className="relative w-40 h-40 flex items-center justify-center border-4 bg-[#F6BB36] rounded-4xl cursor-pointer hover:bg-[#F4C430] transition-colors"
-      onClick={onClick}
     >
       {/* <img
         src="/yellow-card.png"
@@ -31,7 +30,7 @@ export default function Card({ name, icon, amount, isSpecial = false, position, 
       /> */}
       <div className="relative z-10 flex flex-col items-center justify-center gap-2">
         <span className="text-black text-sm uppercase font-chewy">{name}</span>
-        {/* <img src={icon} alt={name} className="w-12 h-12" /> */}
+        <img src="/duck.png" alt={name} className="w-14 h-14" />
         <span className="text-black text-sm">{amount}</span>
       </div>
 

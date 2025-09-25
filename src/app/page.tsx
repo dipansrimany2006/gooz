@@ -135,7 +135,7 @@ function HomePage() {
 
       {/* Main Content */}
       <div className='flex flex-col items-center justify-center space-y-8'>
-        <img src={'/Rectangle 26.png'} alt='Game Banner' className=''/>
+        <img src={'/Copy of Gooz.gif'} alt='Game Banner' className='h-150 w-full'/>
 
         <div className='space-y-8'>
           {/* Create New Room Button */}
