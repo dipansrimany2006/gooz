@@ -6,9 +6,11 @@ interface CardModalProps {
   cardName?: string;
   cardAmount?: string;
   cardIcon?: string;
+  onBuy?: () => void;
+  onPass?: () => void;
 }
 
-const CardModal = ({ isOpen, onClose, cardName, cardAmount, cardIcon }: CardModalProps) => {
+const CardModal = ({ isOpen, onClose, cardName, cardAmount, cardIcon, onBuy, onPass }: CardModalProps) => {
   if (!isOpen) return null;
 
   return (
@@ -32,13 +34,19 @@ const CardModal = ({ isOpen, onClose, cardName, cardAmount, cardIcon }: CardModa
               src="/buy_img.png"
               alt="Buy"
               className="cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => console.log('Buy clicked')}
+              onClick={() => {
+                onBuy?.();
+                onClose();
+              }}
             />
             <img
               src="/pass_img.png"
               alt="Pass"
               className="cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => console.log('Pass clicked')}
+              onClick={() => {
+                onPass?.();
+                onClose();
+              }}
             />
           </div>
         </div>

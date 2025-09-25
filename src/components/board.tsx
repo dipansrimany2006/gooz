@@ -90,6 +90,32 @@ const Board = () => {
     }
   };
 
+  // Buy property function
+  const buyProperty = () => {
+    if (ws && gameId) {
+      const buyMessage = {
+        type: 'BUY_PROPERTY',
+        gameId: gameId,
+        playerId: PLAYER_ID
+      };
+      ws.send(JSON.stringify(buyMessage));
+      console.log('🏠 Buy property request sent:', buyMessage);
+    }
+  };
+
+  // Pass property function
+  const passProperty = () => {
+    if (ws && gameId) {
+      const passMessage = {
+        type: 'PASS_PROPERTY',
+        gameId: gameId,
+        playerId: PLAYER_ID
+      };
+      ws.send(JSON.stringify(passMessage));
+      console.log('🚫 Pass property request sent:', passMessage);
+    }
+  };
+
   // WebSocket message handler
   const handleWebSocketMessage = (event: MessageEvent) => {
     try {
@@ -142,6 +168,30 @@ const Board = () => {
           setCurrentPlayer(message.currentPlayer?.id || null);
           updateAllPlayerPositions(message.players);
           setServerPlayers(message.players); // Update server players
+          break;
+
+        case 'BUY_OR_PASS':
+          console.log('🏠 BUY_OR_PASS received:', message);
+          if (message.block) {
+            setSelectedCard({
+              name: message.block.name || 'Property',
+              amount: `$${message.block.price || 0}`,
+              icon: '/yellow_card.png'
+            });
+            setIsModalOpen(true);
+          }
+          break;
+
+        case 'PROPERTY_BOUGHT':
+          console.log('🏠 Property bought:', message);
+          setIsModalOpen(false);
+          setSelectedCard(null);
+          break;
+
+        case 'PROPERTY_PASSED':
+          console.log('🚫 Property passed:', message);
+          setIsModalOpen(false);
+          setSelectedCard(null);
           break;
 
         case 'ERROR':
@@ -270,6 +320,7 @@ const Board = () => {
     setSelectedCard(null);
   };
 
+
   return (
     <div className="bg-[url('/white-bg.png')] bg-contain bg-center bg-no-repeat w-[1000px] h-[800px] relative flex items-center justify-center col-span-4">
       {/* Connection Status */}
@@ -365,6 +416,8 @@ const Board = () => {
           cardName={selectedCard?.name}
           cardAmount={selectedCard?.amount}
           cardIcon={selectedCard?.icon}
+          onBuy={buyProperty}
+          onPass={passProperty}
         />
       </div>
   )
