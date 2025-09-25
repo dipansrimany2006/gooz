@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Chewy, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@near-wallet-selector/modal-ui/styles.css"
-import { WalletProvider } from "../../context/WalletProvider";
+import { WalletProvider } from "@/context/WalletProvider";
+import { GameProvider } from "../context/GameContext";
 
 
 const chewy = Chewy({
@@ -23,14 +24,15 @@ export default function RootLayout({
 }>) {
   return (
     <WalletProvider>
-       <html lang="en">
-      <body
-        className={`${chewy.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+      <GameProvider>
+        <html lang="en">
+          <body
+            className={`${chewy.variable} antialiased`}
+          >
+            {children}
+          </body>
+        </html>
+      </GameProvider>
     </WalletProvider>
-   
   );
 }

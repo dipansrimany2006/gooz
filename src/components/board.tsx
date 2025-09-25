@@ -5,6 +5,7 @@ import CardModal from './cardmodal'
 import { Button } from './ui/button'
 import { GAME_CONFIG, POSITION_MAPPING } from '../config/gameConfig'
 import { useGame } from '../context/GameContext'
+import { useWallet } from '../context/WalletProvider'
 
 interface Player {
   id: string;
@@ -34,12 +35,9 @@ const Board = () => {
     diceRoll, setDiceRoll
   } = useGame();
 
-  // Initialize gameId from config if not set
-  useEffect(() => {
-    if (!gameId) {
-      setGameId(GAME_CONFIG.GAME_ID);
-    }
-  }, [gameId, setGameId]);
+  // Get wallet information for player ID
+  const { accountId } = useWallet();
+
 
   // Game settings from config
   const { PLAYER_ID, PLAYER_NAME, PLAYER_COLOR, WS_URL, AUTO_CREATE_GAME, AUTO_JOIN_EXISTING } = GAME_CONFIG;
@@ -54,14 +52,14 @@ const Board = () => {
     console.log('- WebSocket connected:', !!ws);
     console.log('- Game ID:', gameId);
     console.log('- Current Player:', currentPlayer);
-    console.log('- Player ID:', PLAYER_ID);
-    console.log('- Is my turn?:', currentPlayer === PLAYER_ID);
+    console.log('- Player ID (accountId):', accountId);
+    console.log('- Is my turn?:', currentPlayer === accountId);
 
-    if (ws && gameId && currentPlayer === PLAYER_ID) {
+    if (ws && gameId && currentPlayer === accountId && accountId) {
       const message = {
         type: 'ROLL_DICE',
         gameId: gameId,
-        playerId: PLAYER_ID
+        playerId: accountId
       };
       console.log('📤 Sending dice roll request:', message);
       ws.send(JSON.stringify(message));
@@ -69,34 +67,35 @@ const Board = () => {
       console.log('❌ Cannot roll dice:');
       console.log('  - WebSocket:', ws ? 'Connected' : 'Disconnected');
       console.log('  - Game ID:', gameId ? gameId : 'Missing');
-      console.log('  - Turn check:', currentPlayer === PLAYER_ID ? 'My turn' : 'Not my turn');
+      console.log('  - Account ID:', accountId ? accountId : 'Not connected');
+      console.log('  - Turn check:', currentPlayer === accountId ? 'My turn' : 'Not my turn');
     }
   };
 
   // Manual join game function for testing
   const joinGame = () => {
-    if (ws && gameId) {
+    if (ws && gameId && accountId) {
       const joinGameMessage = {
         type: 'JOIN_GAME',
         gameId: gameId,
-        playerId: PLAYER_ID,
-        playerName: PLAYER_NAME,
-        colorCode: PLAYER_COLOR
+        playerId: accountId,
+        playerName: 'player',
+        colorCode: '#4ECDC4'
       };
       ws.send(JSON.stringify(joinGameMessage));
       console.log('Manual join game request sent:', joinGameMessage);
     } else {
-      console.log('Cannot join - WebSocket not connected or no game ID');
+      console.log('Cannot join - WebSocket not connected, no game ID, or wallet not connected');
     }
   };
 
   // Buy property function
   const buyProperty = () => {
-    if (ws && gameId) {
+    if (ws && gameId && accountId) {
       const buyMessage = {
         type: 'BUY_PROPERTY',
         gameId: gameId,
-        playerId: PLAYER_ID
+        playerId: accountId
       };
       ws.send(JSON.stringify(buyMessage));
       console.log('🏠 Buy property request sent:', buyMessage);
@@ -105,11 +104,11 @@ const Board = () => {
 
   // Pass property function
   const passProperty = () => {
-    if (ws && gameId) {
+    if (ws && gameId && accountId) {
       const passMessage = {
         type: 'PASS_PROPERTY',
         gameId: gameId,
-        playerId: PLAYER_ID
+        playerId: accountId
       };
       ws.send(JSON.stringify(passMessage));
       console.log('🚫 Pass property request sent:', passMessage);
@@ -212,75 +211,12 @@ const Board = () => {
 
 
   // Initialize demo players at GO (logical position 0, visual position 11)
+  // Set up message handler for existing WebSocket connection
   useEffect(() => {
-    const connectWebSocket = () => {
-      try {
-        console.log('🔄 Attempting to connect to WebSocket:', WS_URL);
-        const websocket = new WebSocket(WS_URL);
-
-        websocket.onopen = () => {
-          console.log('🔗 WebSocket connected successfully!');
-          if (GAME_CONFIG.ENABLE_CONSOLE_LOGS) {
-            console.log('WebSocket connected');
-          }
-          setIsConnected(true);
-          setWs(websocket);
-
-          // Join existing game or create new one based on config
-          if (AUTO_JOIN_EXISTING && gameId) {
-            const joinGameMessage = {
-              type: 'JOIN_GAME',
-              gameId: gameId,
-              playerId: PLAYER_ID,
-              playerName: PLAYER_NAME,
-              colorCode: PLAYER_COLOR
-            };
-            websocket.send(JSON.stringify(joinGameMessage));
-            if (GAME_CONFIG.ENABLE_CONSOLE_LOGS) {
-              console.log('Sent join game message:', joinGameMessage);
-            }
-          } else if (AUTO_CREATE_GAME) {
-            const createGameMessage = {
-              type: 'CREATE_GAME',
-              playerId: PLAYER_ID,
-              playerName: PLAYER_NAME,
-              colorCode: PLAYER_COLOR
-            };
-            websocket.send(JSON.stringify(createGameMessage));
-            if (GAME_CONFIG.ENABLE_CONSOLE_LOGS) {
-              console.log('Sent create game message:', createGameMessage);
-            }
-          }
-        };
-
-        websocket.onmessage = handleWebSocketMessage;
-
-        websocket.onclose = () => {
-          console.log('WebSocket disconnected');
-          setIsConnected(false);
-          setWs(null);
-          setGameId(null);
-        };
-
-        websocket.onerror = (error) => {
-          console.error('❌ WebSocket connection error:', error);
-          console.error('WS URL:', WS_URL);
-        };
-
-      } catch (error) {
-        console.error('Failed to create WebSocket connection:', error);
-      }
-    };
-
-    connectWebSocket();
-
-    // Cleanup on unmount
-    return () => {
-      if (ws) {
-        ws.close();
-      }
-    };
-  }, []);
+    if (ws) {
+      ws.onmessage = handleWebSocketMessage;
+    }
+  }, [ws]);
 
   // Expose join function to global scope for testing
   useEffect(() => {
@@ -324,7 +260,7 @@ const Board = () => {
   return (
     <div className="bg-[url('/white-bg.png')] bg-contain bg-center bg-no-repeat w-[1000px] h-[800px] relative flex items-center justify-center col-span-4">
       {/* Connection Status */}
-      <div className="absolute top-4 right-4 z-20">
+      <div className="absolute hidden top-4 right-4 z-20">
         <div className={`px-3 py-1 rounded text-sm font-bold ${
           isConnected ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
         }`}>
