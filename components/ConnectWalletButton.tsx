@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useWallet } from '../context/WalletProvider'
 import { Button } from '@/components/ui/button'
-import { Wallet, LogOut, Copy, Check } from 'lucide-react'
+import { Wallet, LogOut, Copy, Check, RefreshCw } from 'lucide-react'
 
 interface ConnectWalletButtonProps {
   className?: string
@@ -13,6 +13,7 @@ export default function ConnectWalletButton({ className }: ConnectWalletButtonPr
   const { accountId, isConnected, isLoading, connect, disconnect, getBalance } = useWallet()
   const [balance, setBalance] = useState<string>('0')
   const [copied, setCopied] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const handleConnect = async () => {
     if (isConnected) {
@@ -30,24 +31,39 @@ export default function ConnectWalletButton({ className }: ConnectWalletButtonPr
     }
   }
 
-  const loadBalance = async () => {
+  const loadBalance = async (isManual = false) => {
     if (isConnected) {
       try {
+        if (isManual) setIsRefreshing(true)
         const walletBalance = await getBalance()
         setBalance(walletBalance)
       } catch (error) {
         console.error('Failed to load balance:', error)
         setBalance('0.0000')
+      } finally {
+        if (isManual) setIsRefreshing(false)
       }
     }
   }
 
+  const handleRefreshBalance = async () => {
+    await loadBalance(true)
+  }
+
   useEffect(() => {
     if (isConnected) {
-      const timer = setTimeout(() => {
+      // Load balance immediately
+      loadBalance()
+
+      // Set up periodic balance updates every 30 seconds
+      const interval = setInterval(() => {
         loadBalance()
-      }, 1000)
-      return () => clearTimeout(timer)
+      }, 30000)
+
+      return () => clearInterval(interval)
+    } else {
+      // Reset balance when disconnected
+      setBalance('0')
     }
   }, [isConnected])
 
@@ -67,6 +83,14 @@ export default function ConnectWalletButton({ className }: ConnectWalletButtonPr
           <div className="flex items-center space-x-2">
             <span className="text-white/70 text-sm">Balance:</span>
             <span className="text-white font-medium">{balance} NEAR</span>
+            <button
+              onClick={handleRefreshBalance}
+              disabled={isRefreshing}
+              className="text-white/50 hover:text-white/70 transition-colors disabled:opacity-50"
+              title="Refresh balance"
+            >
+              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-white/50 text-xs font-mono">

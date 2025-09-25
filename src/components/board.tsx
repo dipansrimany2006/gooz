@@ -5,6 +5,7 @@ import CardModal from './cardmodal'
 import { Button } from './ui/button'
 import { GAME_CONFIG, POSITION_MAPPING } from '../config/gameConfig'
 import { useGame } from '../context/GameContext'
+import { useWallet } from '../../context/WalletProvider'
 
 interface Player {
   id: string;
@@ -33,6 +34,9 @@ const Board = () => {
     serverPlayers, setServerPlayers,
     diceRoll, setDiceRoll
   } = useGame();
+
+  // Use wallet context for transactions
+  const { selector, accountId, isConnected: walletConnected } = useWallet();
 
   // Initialize gameId from config if not set
   useEffect(() => {
@@ -270,6 +274,49 @@ const Board = () => {
     setSelectedCard(null);
   };
 
+  const handleBuy = async () => {
+    if (!selectedCard || !selector || !accountId || !walletConnected) {
+      alert('Please connect your wallet first!');
+      return;
+    }
+
+    try {
+      const wallet = await selector.wallet();
+      const cardAmount = parseFloat(selectedCard.amount.replace(/[^\d.-]/g, ''));
+
+      // Convert amount to yoctoNEAR (1 NEAR = 10^24 yoctoNEAR)
+      const amountInYocto = (BigInt(Math.floor(cardAmount)) * BigInt(10 ** 24)).toString();
+
+      // Create transaction to buy the card
+      const transaction = {
+        receiverId: "game-contract.testnet", // Replace with your actual contract
+        actions: [{
+          type: "FunctionCall",
+          params: {
+            methodName: "buy_card",
+            args: {
+              card_name: selectedCard.name,
+              player_id: PLAYER_ID,
+              game_id: gameId
+            },
+            gas: "30000000000000",
+            deposit: amountInYocto
+          }
+        }]
+      };
+
+      await wallet.signAndSendTransaction(transaction);
+
+      // Close modal and update UI
+      handleCloseModal();
+      alert(`Successfully bought ${selectedCard.name}!`);
+
+    } catch (error) {
+      console.error('Transaction failed:', error);
+      alert('Transaction failed. Please try again.');
+    }
+  };
+
   return (
     <div className="bg-[url('/white-bg.png')] bg-contain bg-center bg-no-repeat w-[1000px] h-[800px] relative flex items-center justify-center col-span-4">
       {/* Connection Status */}
@@ -365,6 +412,7 @@ const Board = () => {
           cardName={selectedCard?.name}
           cardAmount={selectedCard?.amount}
           cardIcon={selectedCard?.icon}
+          onBuy={handleBuy}
         />
       </div>
   )
