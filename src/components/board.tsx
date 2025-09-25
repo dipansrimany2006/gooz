@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import Card from './card'
+import CardModal from './cardmodal'
 import { Button } from './ui/button'
 import { GAME_CONFIG, POSITION_MAPPING } from '../config/gameConfig'
 import { useGame } from '../context/GameContext'
@@ -140,6 +141,24 @@ const Board = () => {
   };
 
   // WebSocket connection setup
+  const [diceRoll, setDiceRoll] = useState<number | null>(null);
+  const [playerPositions, setPlayerPositions] = useState<PlayerPosition[]>([]);
+  const [currentPlayer, setCurrentPlayer] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<{ name: string; amount: string; icon: string } | null>(null);
+
+  const randomSpeaker = () => {
+    console.log(1);
+    const roll = Math.floor(Math.random() * 6) + 1; // generates 1–6
+    setDiceRoll(roll);
+
+    // Simulate player movement when dice is rolled
+    if (currentPlayer && playerPositions.length > 0) {
+      simulatePlayerMovement(currentPlayer, roll);
+    }
+  }
+
+  // Initialize demo players at GO (logical position 0, visual position 11)
   useEffect(() => {
     const connectWebSocket = () => {
       try {
@@ -235,6 +254,16 @@ const Board = () => {
     setPlayerPositions(positions);
   };
 
+  const handleCardClick = (name: string, amount: string, icon: string) => {
+    setSelectedCard({ name, amount, icon });
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCard(null);
+  };
+
   return (
     <div className="bg-[url('/white-bg.png')] bg-contain bg-center bg-no-repeat w-[1000px] h-[800px] relative flex items-center justify-center col-span-4">
       {/* Connection Status */}
@@ -262,24 +291,24 @@ const Board = () => {
         <div className="grid grid-cols-5 grid-rows-4 gap-4 w-full h-full py-16 px-4">
           {/* Top row - 5 cards */}
           <div className="grid place-items-center">
-            <Card name="Jail" icon="/yellow_card.png" amount="$200" position={7} players={playerPositions} />
+            <Card name="Jail" icon="/yellow_card.png" amount="$200" position={7} players={playerPositions} onClick={() => handleCardClick("Jail", "$200", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Property 8" icon="/yellow_card.png" amount="$100" position={8} players={playerPositions} />
+            <Card name="Property 8" icon="/yellow_card.png" amount="$100" position={8} players={playerPositions} onClick={() => handleCardClick("Property 8", "$100", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Property 9" icon="/yellow_card.png" amount="$150" position={9} players={playerPositions} />
+            <Card name="Property 9" icon="/yellow_card.png" amount="$150" position={9} players={playerPositions} onClick={() => handleCardClick("Property 9", "$150", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Property 10" icon="/yellow_card.png" amount="$200" position={10} players={playerPositions} />
+            <Card name="Property 10" icon="/yellow_card.png" amount="$200" position={10} players={playerPositions} onClick={() => handleCardClick("Property 10", "$200", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Free Parking" icon="/yellow_card.png" amount="-$100" position={11} players={playerPositions} />
+            <Card name="Free Parking" icon="/yellow_card.png" amount="-$100" position={11} players={playerPositions} onClick={() => handleCardClick("Free Parking", "-$100", "/yellow_card.png")} />
           </div>
 
           {/* Second row - only first and last positions */}
           <div className="grid place-items-center">
-            <Card name="Property 6" icon="/yellow_card.png" amount="$450" position={6} players={playerPositions} />
+            <Card name="Property 6" icon="/yellow_card.png" amount="$450" position={6} players={playerPositions} onClick={() => handleCardClick("Property 6", "$450", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center col-span-3 row-span-2 rounded-lg">
               <Button onClick={rollDice} className='relative h-[250px] w-[250px]' disabled={!isConnected || currentPlayer !== PLAYER_ID}>
@@ -295,34 +324,42 @@ const Board = () => {
               </Button>
           </div>
           <div className="grid place-items-center">
-            <Card name="Property 12" icon="/yellow_card.png" amount="$250" position={12} players={playerPositions} />
+            <Card name="Property 12" icon="/yellow_card.png" amount="$250" position={12} players={playerPositions} onClick={() => handleCardClick("Property 12", "$250", "/yellow_card.png")} />
           </div>
 
           {/* Third row - only first and last positions */}
           <div className="grid place-items-center">
-            <Card name="Property 5" icon="/yellow_card.png" amount="$425" position={5} players={playerPositions} />
+            <Card name="Property 5" icon="/yellow_card.png" amount="$425" position={5} players={playerPositions} onClick={() => handleCardClick("Property 5", "$425", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Property 13" icon="/yellow_card.png" amount="$275" position={13} players={playerPositions} />
+            <Card name="Property 13" icon="/yellow_card.png" amount="$275" position={13} players={playerPositions} onClick={() => handleCardClick("Property 13", "$275", "/yellow_card.png")} />
           </div>
 
           {/* Bottom row - 5 cards */}
           <div className="grid place-items-center">
-            <Card name="Property 4" icon="/yellow_card.png" amount="$0" position={4} players={playerPositions} />
+            <Card name="Property 4" icon="/yellow_card.png" amount="$0" position={4} players={playerPositions} onClick={() => handleCardClick("Property 4", "$0", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Property 3" icon="/yellow_card.png" amount="$325" position={3} players={playerPositions} />
+            <Card name="Property 3" icon="/yellow_card.png" amount="$325" position={3} players={playerPositions} onClick={() => handleCardClick("Property 3", "$325", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Property 2" icon="/yellow_card.png" amount="$350" position={2} players={playerPositions} />
+            <Card name="Property 2" icon="/yellow_card.png" amount="$350" position={2} players={playerPositions} onClick={() => handleCardClick("Property 2", "$350", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Property 1" icon="/yellow_card.png" amount="$375" position={1} players={playerPositions} />
+            <Card name="Property 1" icon="/yellow_card.png" amount="$375" position={1} players={playerPositions} onClick={() => handleCardClick("Property 1", "$375", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="GO" icon="/yellow_card.png" amount="$200" position={0} players={playerPositions} />
+            <Card name="GO" icon="/yellow_card.png" amount="$200" position={0} players={playerPositions} onClick={() => handleCardClick("GO", "$200", "/yellow_card.png")} />
           </div>
         </div>
+
+        <CardModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          cardName={selectedCard?.name}
+          cardAmount={selectedCard?.amount}
+          cardIcon={selectedCard?.icon}
+        />
       </div>
   )
 }
