@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <WalletProvider>
       <GameProvider>
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
           <body
             className={`${chewy.variable} antialiased`}
           >

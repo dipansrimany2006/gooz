@@ -195,8 +195,7 @@ const Board = () => {
           console.log('- Player ID:', message.playerId);
           console.log('- Server Position:', message.newPosition);
           
-          // const frontendPosition = mapServerToFrontend(message.newPosition);
-          const frontendPosition = message.newPosition;
+          const frontendPosition = mapServerToFrontend(message.newPosition);
           console.log('- Frontend Position:', frontendPosition);
           console.log('- Player Data:', message.player);
 
@@ -283,8 +282,7 @@ const Board = () => {
       playerId: player.id,
       name: player.name,
       colorCode: player.colorCode,
-      // currentPosition: mapServerToFrontend(player.position)
-      currentPosition: player.position
+      currentPosition: mapServerToFrontend(player.position)
     }));
     setPlayerPositions(positions);
   };
@@ -326,27 +324,25 @@ const Board = () => {
       </div>
         <div className="grid grid-cols-5 grid-rows-4 gap-4 w-full h-full py-16 px-4">
           {/* Top row - 5 cards */}
-          {/* Corner: Free Parking at position 10 */}
           <div className="grid place-items-center">
-            <Card name="Free Parking" icon="/yellow_card.png" amount="$0" position={10} players={playerPositions} onClick={() => handleCardClick("Free Parking", "$0", "/yellow_card.png")} />
+            <Card name="Jail" icon="/yellow_card.png" amount="$0" position={7} players={playerPositions} onClick={() => handleCardClick("Jail", "$0", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="St. James Place" icon="/yellow_card.png" amount="$180" position={11} players={playerPositions} onClick={() => handleCardClick("St. James Place", "$180", "/yellow_card.png")} />
+            <Card name="St. James Place" icon="/yellow_card.png" amount="$180" position={8} players={playerPositions} onClick={() => handleCardClick("St. James Place", "$180", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Tennessee Avenue" icon="/yellow_card.png" amount="$180" position={12} players={playerPositions} onClick={() => handleCardClick("Tennessee Avenue", "$180", "/yellow_card.png")} />
+            <Card name="Tennessee Avenue" icon="/yellow_card.png" amount="$180" position={9} players={playerPositions} onClick={() => handleCardClick("Tennessee Avenue", "$180", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="New York Avenue" icon="/yellow_card.png" amount="$200" position={13} players={playerPositions} onClick={() => handleCardClick("New York Avenue", "$200", "/yellow_card.png")} />
+            <Card name="New York Avenue" icon="/yellow_card.png" amount="$200" position={10} players={playerPositions} onClick={() => handleCardClick("New York Avenue", "$200", "/yellow_card.png")} />
           </div>
-          {/* Corner: Go to Jail at position 15 */}
           <div className="grid place-items-center">
-            <Card name="Go to Jail" icon="/yellow_card.png" amount="$0" position={15} players={playerPositions} onClick={() => handleCardClick("Go to Jail", "$0", "/yellow_card.png")} />
+            <Card name="Free Parking" icon="/yellow_card.png" amount="$0" position={11} players={playerPositions} onClick={() => handleCardClick("Free Parking", "$0", "/yellow_card.png")} />
           </div>
 
-          {/* Second row - Side properties */}
+          {/* Second row - only first and last positions */}
           <div className="grid place-items-center">
-            <Card name="Virginia Avenue" icon="/yellow_card.png" amount="$160" position={9} players={playerPositions} onClick={() => handleCardClick("Virginia Avenue", "$160", "/yellow_card.png")} />
+            <Card name="Virginia Avenue" icon="/yellow_card.png" amount="$160" position={6} players={playerPositions} onClick={() => handleCardClick("Virginia Avenue", "$160", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center col-span-3 row-span-2 rounded-lg">
               <Button onClick={rollDice} className='relative h-[250px] w-[250px]' disabled={!isConnected || currentPlayer !== accountId}>
@@ -362,41 +358,18 @@ const Board = () => {
               </Button>
           </div>
           <div className="grid place-items-center">
-            <Card name="Kentucky Avenue" icon="/yellow_card.png" amount="$220" position={14} players={playerPositions} onClick={() => handleCardClick("Kentucky Avenue", "$220", "/yellow_card.png")} />
+            <Card name="Kentucky Avenue" icon="/yellow_card.png" amount="$220" position={12} players={playerPositions} onClick={() => handleCardClick("Kentucky Avenue", "$220", "/yellow_card.png")} />
           </div>
 
-          {/* Third row - Side properties */}
+          {/* Third row - only first and last positions */}
           <div className="grid place-items-center">
-            <Card name="States Avenue" icon="/yellow_card.png" amount="$140" position={8} players={playerPositions} onClick={() => handleCardClick("States Avenue", "$140", "/yellow_card.png")} />
+            <Card name="States Avenue" icon="/yellow_card.png" amount="$140" position={5} players={playerPositions} onClick={() => handleCardClick("States Avenue", "$140", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Atlantic Avenue" icon="/yellow_card.png" amount="$260" position={16} players={playerPositions} onClick={() => handleCardClick("Atlantic Avenue", "$260", "/yellow_card.png")} />
-          </div>
-
-          {/* Fourth row - Additional side properties */}
-          <div className="grid place-items-center">
-            <Card name="Electric Company" icon="/yellow_card.png" amount="$150" position={7} players={playerPositions} onClick={() => handleCardClick("Electric Company", "$150", "/yellow_card.png")} />
-          </div>
-          <div className="grid place-items-center">
-            <Card name="Ventnor Avenue" icon="/yellow_card.png" amount="$260" position={17} players={playerPositions} onClick={() => handleCardClick("Ventnor Avenue", "$260", "/yellow_card.png")} />
-          </div>
-
-          {/* Fifth row - More side properties */}
-          <div className="grid place-items-center">
-            <Card name="St. Charles Place" icon="/yellow_card.png" amount="$140" position={6} players={playerPositions} onClick={() => handleCardClick("St. Charles Place", "$140", "/yellow_card.png")} />
-          </div>
-          <div className="grid place-items-center">
-            <Card name="Water Works" icon="/yellow_card.png" amount="$150" position={18} players={playerPositions} onClick={() => handleCardClick("Water Works", "$150", "/yellow_card.png")} />
-          </div>
-          <div className="grid place-items-center">
-            <Card name="Marvin Gardens" icon="/yellow_card.png" amount="$280" position={19} players={playerPositions} onClick={() => handleCardClick("Marvin Gardens", "$280", "/yellow_card.png")} />
+            <Card name="Atlantic Avenue" icon="/yellow_card.png" amount="$260" position={13} players={playerPositions} onClick={() => handleCardClick("Atlantic Avenue", "$260", "/yellow_card.png")} />
           </div>
 
           {/* Bottom row - 5 cards */}
-          {/* Corner: Jail at position 5 */}
-          <div className="grid place-items-center">
-            <Card name="Jail" icon="/yellow_card.png" amount="$0" position={5} players={playerPositions} onClick={() => handleCardClick("Jail", "$0", "/yellow_card.png")} />
-          </div>
           <div className="grid place-items-center">
             <Card name="Vermont Avenue" icon="/yellow_card.png" amount="$100" position={4} players={playerPositions} onClick={() => handleCardClick("Vermont Avenue", "$100", "/yellow_card.png")} />
           </div>
@@ -406,7 +379,9 @@ const Board = () => {
           <div className="grid place-items-center">
             <Card name="Baltic Avenue" icon="/yellow_card.png" amount="$60" position={2} players={playerPositions} onClick={() => handleCardClick("Baltic Avenue", "$60", "/yellow_card.png")} />
           </div>
-          {/* Corner: GO at position 0 */}
+          <div className="grid place-items-center">
+            <Card name="Mediterranean Ave" icon="/yellow_card.png" amount="$60" position={1} players={playerPositions} onClick={() => handleCardClick("Mediterranean Ave", "$60", "/yellow_card.png")} />
+          </div>
           <div className="grid place-items-center">
             <Card name="GO" icon="/yellow_card.png" amount="$200" position={0} players={playerPositions} onClick={() => handleCardClick("GO", "$200", "/yellow_card.png")} />
           </div>
