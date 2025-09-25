@@ -6,22 +6,25 @@ import Sidepanel from '@/components/sidepanel';
 import Board from '@/components/board';
 import ConnectWalletButton from '../../components/ConnectWalletButton';
 import ChatRoom from '@/components/chatRoom';
+import { GameProvider } from '@/context/GameContext';
 
 export default function Home() {
 
   return (
-    <div className="h-screen w-screen p-0 m-0 bg-[url('/Gooz_bg.png')] bg-cover bg-center bg-no-repeat">
-      <div className='flex items-end justify-between px-20 h-20'>
-        <img src={"/GoozDotFun.png"} alt=''/>
-        <ConnectWalletButton/>
-      </div>
-      <div className="flex items-center justify-evenly h-[calc(100vh-120px)]">
-        <Sidepanel roomid="12kfn345" />
-        <div className='grid place-items-center'>
-          <Board />
+    <GameProvider>
+      <div className="h-screen w-screen p-0 m-0 bg-[url('/Gooz_bg.png')] bg-cover bg-center bg-no-repeat">
+        <div className='flex items-end justify-between px-20 h-20'>
+          <img src={"/GoozDotFun.png"} alt=''/>
+          <ConnectWalletButton/>
         </div>
-        <ChatRoom />
+        <div className="flex items-center justify-evenly h-[calc(100vh-120px)]">
+          <Sidepanel roomid="12kfn345" />
+          <div className='grid place-items-center'>
+            <Board />
+          </div>
+          <ChatRoom />
+        </div>
       </div>
-    </div>
+    </GameProvider>
   );
 }
