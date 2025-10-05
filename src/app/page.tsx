@@ -1,19 +1,20 @@
 'use client'
-import ConnectWalletButton from '../components/ConnectWalletButton';
-import { useGame } from '@/context/GameContext';
-import { useWallet } from '../context/WalletProvider';
+import { createThirdwebClient } from "thirdweb";
+import { ConnectButton } from "thirdweb/react";
+
 import { useState, useCallback, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 function HomePage() {
-  const { accountId, isConnected } = useWallet();
-  const { ws, setWs, setGameId, setIsConnected } = useGame();
+  // TODO: Replace with Thirdweb wallet connection
+  const accountId = null;
+  const isConnected = false;
   const playerName = 'player'; // Constant player name
   const [roomId, setRoomId] = useState('');
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isJoiningRoom, setIsJoiningRoom] = useState(false);
-  const router = useRouter();
-
+  const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID as string;
+  
+  const client = createThirdwebClient({ clientId });
   // Load previously stored gameId on component mount
   useEffect(() => {
     const storedGameId = localStorage.getItem('gameId');
@@ -22,106 +23,24 @@ function HomePage() {
     }
   }, []);
 
-  const connectWebSocket = useCallback(() => {
-    if (ws) return ws;
-
-    const newWs = new WebSocket('ws://localhost:8080');
-
-    newWs.onopen = () => {
-      console.log('WebSocket connected');
-      setIsConnected(true);
-    };
-
-    newWs.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      console.log('Received message:', message);
-
-      if (message.type === 'GAME_CREATED') {
-        const receivedGameId = message.gameId;
-        setGameId(receivedGameId);
-        setRoomId(receivedGameId); // Store the roomId for future reference
-        localStorage.setItem('gameId', receivedGameId); // Persist in localStorage
-        router.push('/play');
-      } else if (message.type === 'PLAYER_JOINED') {
-        const receivedGameId = message.gameId || roomId;
-        setGameId(receivedGameId);
-        setRoomId(receivedGameId); // Update roomId with server response
-        localStorage.setItem('gameId', receivedGameId); // Persist in localStorage
-        router.push('/play');
-      } else if (message.type === 'ERROR') {
-        console.error('Game error:', message.message);
-        alert('Error: ' + message.message);
-        setIsCreatingRoom(false);
-        setIsJoiningRoom(false);
-      }
-    };
-
-    newWs.onclose = () => {
-      console.log('WebSocket disconnected');
-      setIsConnected(false);
-    };
-
-    newWs.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      setIsCreatingRoom(false);
-      setIsJoiningRoom(false);
-    };
-
-    setWs(newWs);
-    return newWs;
-  }, [ws, setWs, setIsConnected, setGameId, router, roomId]);
 
   const handleCreateRoom = useCallback(async () => {
-    if (!isConnected || !playerName.trim() || !accountId) return;
+    if (!isConnected || !playerName.trim()) return;
 
     setIsCreatingRoom(true);
-    const websocket = connectWebSocket();
-
-    if (websocket.readyState === WebSocket.OPEN) {
-      websocket.send(JSON.stringify({
-        type: 'CREATE_GAME',
-        playerId: accountId,
-        playerName: playerName.trim(),
-        colorCode: '#FF6B6B' // Fixed red color
-      }));
-    } else {
-      websocket.addEventListener('open', () => {
-        websocket.send(JSON.stringify({
-          type: 'CREATE_GAME',
-          playerId: accountId,
-          playerName: playerName.trim(),
-          colorCode: '#FF6B6B' // Fixed red color
-        }));
-      });
-    }
-  }, [isConnected, playerName, accountId, connectWebSocket]);
+    // TODO: Replace with API call to create room
+    console.log('Create room clicked');
+    setIsCreatingRoom(false);
+  }, [isConnected, playerName]);
 
   const handleJoinRoom = useCallback(async () => {
-    if (!isConnected || !playerName.trim() || !roomId.trim() || !accountId) return;
+    if (!isConnected || !playerName.trim() || !roomId.trim()) return;
 
     setIsJoiningRoom(true);
-    const websocket = connectWebSocket();
-
-    if (websocket.readyState === WebSocket.OPEN) {
-      websocket.send(JSON.stringify({
-        type: 'JOIN_GAME',
-        gameId: roomId.trim(),
-        playerId: accountId,
-        playerName: playerName.trim(),
-        colorCode: '#4ECDC4' // Fixed teal color
-      }));
-    } else {
-      websocket.addEventListener('open', () => {
-        websocket.send(JSON.stringify({
-          type: 'JOIN_GAME',
-          gameId: roomId.trim(),
-          playerId: accountId,
-          playerName: playerName.trim(),
-          colorCode: '#4ECDC4' // Fixed teal color
-        }));
-      });
-    }
-  }, [isConnected, playerName, roomId, accountId, connectWebSocket]);
+    // TODO: Replace with API call to join room
+    console.log('Join room clicked with roomId:', roomId);
+    setIsJoiningRoom(false);
+  }, [isConnected, playerName, roomId]);
 
   const isButtonsDisabled = !isConnected;
 
@@ -130,7 +49,7 @@ function HomePage() {
       {/* Header */}
       <div className='absolute top-0 left-0 right-0 flex items-center justify-between px-20 py-6'>
         <img src={"/GoozDotFun.png"} alt='Gooz.Fun Logo'/>
-        <ConnectWalletButton/>
+        <ConnectButton client={client}/>
       </div>
 
       {/* Main Content */}

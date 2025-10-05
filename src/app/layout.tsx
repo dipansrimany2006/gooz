@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Chewy, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import "@near-wallet-selector/modal-ui/styles.css"
-import { WalletProvider } from "@/context/WalletProvider";
 import { GameProvider } from "../context/GameContext";
+import { ThirdwebProvider } from "thirdweb/react";
 
 
 const chewy = Chewy({
@@ -23,16 +22,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <WalletProvider>
       <GameProvider>
-        <html lang="en" suppressHydrationWarning>
-          <body
-            className={`${chewy.variable} antialiased`}
-          >
-            {children}
-          </body>
-        </html>
+        <ThirdwebProvider>
+          <html lang="en" suppressHydrationWarning>
+            <body
+              className={`${chewy.variable} antialiased`}
+            >
+              {children}
+            </body>
+          </html>
+        </ThirdwebProvider>
       </GameProvider>
-    </WalletProvider>
   );
 }

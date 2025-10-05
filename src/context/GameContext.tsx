@@ -18,12 +18,6 @@ interface PlayerPosition {
 }
 
 interface GameContextType {
-  // WebSocket Connection
-  ws: WebSocket | null;
-  setWs: (ws: WebSocket | null) => void;
-  isConnected: boolean;
-  setIsConnected: (connected: boolean) => void;
-
   // Game State
   gameId: string | null;
   setGameId: (id: string | null) => void;
@@ -44,8 +38,6 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
   const [gameId, setGameId] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<string | null>(null);
   const [playerPositions, setPlayerPositions] = useState<PlayerPosition[]>([]);
@@ -62,10 +54,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   }, [gameId]);
 
   const value: GameContextType = {
-    ws,
-    setWs,
-    isConnected,
-    setIsConnected,
     gameId,
     setGameId,
     currentPlayer,

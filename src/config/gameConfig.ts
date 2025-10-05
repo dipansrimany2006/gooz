@@ -1,8 +1,5 @@
-// Game Configuration for WebSocket Connection
+// Game Configuration
 export const GAME_CONFIG = {
-  // WebSocket Server Settings
-  WS_URL: 'ws://localhost:8080',
-
   // Game Session Settings (Update these based on your current game)
   GAME_ID: '00BF80D3', // Current game ID from server response
 
