@@ -109,12 +109,27 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         setGameId(message.gameId);
         setCreatorId(message.playerId);
         localStorage.setItem('gameId', message.gameId);
-        console.log('✅ Game created:', message.gameId);
+        // Add the creator as the first player
+        if (message.player) {
+          setServerPlayers([message.player]);
+        }
+        console.log('✅ Game created:', message.gameId, 'Creator:', message.player?.name);
         break;
 
       case 'PLAYER_JOINED':
+        // Update gameId in case we joined a different game
+        if (message.gameId) {
+          setGameId(message.gameId);
+          localStorage.setItem('gameId', message.gameId);
+        }
         setServerPlayers(message.players || []);
-        console.log('✅ Player joined. Total players:', message.players?.length);
+        console.log('✅ Player joined. Total players:', message.players?.length, 'Game:', message.gameId);
+        break;
+
+      case 'PLAYER_LEFT':
+        // Update player list when someone leaves
+        setServerPlayers(message.players || []);
+        console.log('👋 Player left:', message.playerName, 'Remaining players:', message.players?.length);
         break;
 
       case 'GAME_STARTED':

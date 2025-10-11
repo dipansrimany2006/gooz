@@ -17,11 +17,24 @@ interface UseWebSocketOptions {
 
 export const useWebSocket = (url: string = 'ws://localhost:8080', options: UseWebSocketOptions = {}) => {
   const [isConnected, setIsConnected] = useState(false);
-  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const hasConnectedRef = useRef(false);
   const { onMessage, onOpen, onClose, onError, autoConnect = true } = options;
+
+  // Use refs for callbacks to prevent dependency changes
+  const onMessageRef = useRef(onMessage);
+  const onOpenRef = useRef(onOpen);
+  const onCloseRef = useRef(onClose);
+  const onErrorRef = useRef(onError);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onOpenRef.current = onOpen;
+    onCloseRef.current = onClose;
+    onErrorRef.current = onError;
+  }, [onMessage, onOpen, onClose, onError]);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -42,15 +55,14 @@ export const useWebSocket = (url: string = 'ws://localhost:8080', options: UseWe
       ws.onopen = () => {
         console.log('✅ WebSocket connected');
         setIsConnected(true);
-        onOpen?.();
+        onOpenRef.current?.();
       };
 
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data) as WebSocketMessage;
           console.log('📩 WebSocket message received:', message);
-          setLastMessage(message);
-          onMessage?.(message);
+          onMessageRef.current?.(message);
         } catch (error) {
           console.error('❌ Failed to parse WebSocket message:', error);
         }
@@ -61,7 +73,7 @@ export const useWebSocket = (url: string = 'ws://localhost:8080', options: UseWe
         setIsConnected(false);
         wsRef.current = null;
         hasConnectedRef.current = false;
-        onClose?.();
+        onCloseRef.current?.();
 
         // Attempt to reconnect after 3 seconds
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -72,14 +84,14 @@ export const useWebSocket = (url: string = 'ws://localhost:8080', options: UseWe
 
       ws.onerror = (error) => {
         console.error('❌ WebSocket error:', error);
-        onError?.(error);
+        onErrorRef.current?.(error);
       };
 
       wsRef.current = ws;
     } catch (error) {
       console.error('❌ Failed to create WebSocket connection:', error);
     }
-  }, [url, onMessage, onOpen, onClose, onError]);
+  }, [url]); // Only url as dependency, callbacks are in refs
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -127,7 +139,6 @@ export const useWebSocket = (url: string = 'ws://localhost:8080', options: UseWe
 
   return {
     isConnected,
-    lastMessage,
     sendMessage,
     connect,
     disconnect,

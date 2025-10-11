@@ -5,7 +5,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { useGame } from '@/context/GameContext';
 import ConnectWalletButton from '@/components/ConnectWalletButton';
 import { useRouter } from 'next/navigation';
-import { depositToGame, u2uTestnet, getEntryFee } from '@/utils/contract';
+// COMMENTED OUT FOR TESTING - Re-enable when ready for blockchain integration
+// import { depositToGame, u2uTestnet, getEntryFee } from '@/utils/contract';
+import { u2uTestnet, getEntryFee } from '@/utils/contract';
 import { ethers } from 'ethers';
 
 function HomePage() {
@@ -90,21 +92,18 @@ function HomePage() {
     setDepositStatus('');
 
     try {
-      // Generate temporary game ID for deposit (will be replaced by server's gameId)
-      const tempGameId = 'CREATE_' + Date.now();
-
       // Step 1: Deposit to smart contract
-      setDepositStatus(`💰 Depositing ${entryFeeDisplay} U2U to contract...`);
-      console.log('🎮 Step 1: Depositing to contract...');
+      // COMMENTED OUT FOR TESTING - Re-enable when ready for blockchain integration
+      // const tempGameId = 'CREATE_' + Date.now();
+      // setDepositStatus(`💰 Depositing ${entryFeeDisplay} U2U to contract...`);
+      // console.log('🎮 Step 1: Depositing to contract...');
+      // const depositResult = await depositToGame(tempGameId, account);
+      // if (!depositResult.success) {
+      //   throw new Error('Deposit transaction failed');
+      // }
+      // console.log('✅ Deposit successful:', depositResult.transactionHash);
 
-      const depositResult = await depositToGame(tempGameId, account);
-
-      if (!depositResult.success) {
-        throw new Error('Deposit transaction failed');
-      }
-
-      console.log('✅ Deposit successful:', depositResult.transactionHash);
-      setDepositStatus('✅ Deposit confirmed! Creating game...');
+      setDepositStatus('🎮 Creating game...');
 
       // Step 2: Send CREATE_GAME message to backend
       const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00'];
@@ -157,17 +156,16 @@ function HomePage() {
       const gameId = roomId.toUpperCase();
 
       // Step 1: Deposit to smart contract
-      setDepositStatus(`💰 Depositing ${entryFeeDisplay} U2U to contract...`);
-      console.log('🎮 Step 1: Depositing to join game:', gameId);
+      // COMMENTED OUT FOR TESTING - Re-enable when ready for blockchain integration
+      // setDepositStatus(`💰 Depositing ${entryFeeDisplay} U2U to contract...`);
+      // console.log('🎮 Step 1: Depositing to join game:', gameId);
+      // const depositResult = await depositToGame(gameId, account);
+      // if (!depositResult.success) {
+      //   throw new Error('Deposit transaction failed');
+      // }
+      // console.log('✅ Deposit successful:', depositResult.transactionHash);
 
-      const depositResult = await depositToGame(gameId, account);
-
-      if (!depositResult.success) {
-        throw new Error('Deposit transaction failed');
-      }
-
-      console.log('✅ Deposit successful:', depositResult.transactionHash);
-      setDepositStatus('✅ Deposit confirmed! Joining game...');
+      setDepositStatus('🎮 Joining game...');
 
       // Step 2: Send JOIN_GAME message to backend
       const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00'];

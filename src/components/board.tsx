@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Card from './card'
 import CardModal from './cardmodal'
 import JailModal from './JailModal'
@@ -44,9 +44,10 @@ const Board = () => {
   const accountId = walletAddress;
 
   // Position mapping: Server (20 positions) → Frontend (15 positions)
-  const mapServerToFrontend = (serverPosition: number): number => {
+  // Wrapped in useCallback to prevent infinite loop in useEffect
+  const mapServerToFrontend = useCallback((serverPosition: number): number => {
     return POSITION_MAPPING[serverPosition as keyof typeof POSITION_MAPPING] ?? serverPosition % 15;
-  };
+  }, []); // Empty deps - POSITION_MAPPING is a constant
 
   // Sound utility function
   const playSound = async () => {
