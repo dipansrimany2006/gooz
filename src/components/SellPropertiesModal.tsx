@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react';
+import ModalTemplate from './ModalTemplate';
 
 interface SellPropertiesModalProps {
   isOpen: boolean;
@@ -19,24 +20,18 @@ const SellPropertiesModal = ({
   onSellProperty,
   onClose
 }: SellPropertiesModalProps) => {
-  if (!isOpen) return null;
-
   const moneyNeeded = rentAmount - currentMoney;
 
   return (
-    <div className='fixed inset-0 flex items-center justify-center bg-black/60 z-50' onClick={onClose}>
-      <div className='bg-white rounded-lg p-8 shadow-2xl w-[600px] max-h-[80vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
-        <div className='flex justify-between items-center mb-6'>
-          <h2 className='text-2xl font-bold text-red-600'>💸 INSUFFICIENT FUNDS!</h2>
-          <button
-            onClick={onClose}
-            className='text-gray-500 hover:text-gray-700 text-xl font-bold'
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className='mb-6 bg-red-50 border-2 border-red-200 rounded-lg p-4'>
+    <ModalTemplate
+      isOpen={isOpen}
+      onClose={onClose}
+      title="💸 INSUFFICIENT FUNDS!"
+      size="lg"
+    >
+      <div className='w-full space-y-4'>
+        {/* Money Status */}
+        <div className='bg-red-50 border-2 border-red-200 rounded-lg p-4'>
           <div className='text-center'>
             <p className='text-lg font-bold mb-2'>You need to pay rent!</p>
             <div className='flex justify-around text-sm'>
@@ -56,7 +51,8 @@ const SellPropertiesModal = ({
           </div>
         </div>
 
-        <div className='mb-4'>
+        {/* Sell Properties Section */}
+        <div>
           <h3 className='text-lg font-bold mb-3'>🏠 Sell Properties to Raise Funds:</h3>
           {ownedProperties.length === 0 ? (
             <div className='text-center p-8 bg-gray-50 rounded-lg'>
@@ -76,7 +72,7 @@ const SellPropertiesModal = ({
                   </div>
                   <button
                     onClick={() => onSellProperty(property)}
-                    className='bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg transition-colors'
+                    className='bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg'
                   >
                     SELL
                   </button>
@@ -86,11 +82,12 @@ const SellPropertiesModal = ({
           )}
         </div>
 
-        <div className='mt-6 text-center text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded p-3'>
+        {/* Warning */}
+        <div className='text-center text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded p-3'>
           ⚠️ You must sell properties to cover the rent or you&apos;ll be declared bankrupt!
         </div>
       </div>
-    </div>
+    </ModalTemplate>
   );
 };
 

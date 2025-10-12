@@ -4,6 +4,7 @@ import Card from './card'
 import CardModal from './cardmodal'
 import JailModal from './JailModal'
 import SellPropertiesModal from './SellPropertiesModal'
+import RentPaymentModal from './RentPaymentModal'
 import { Button } from './ui/button'
 import { GAME_CONFIG, POSITION_MAPPING } from '../config/gameConfig'
 import { useGame } from '../context/GameContext'
@@ -36,9 +37,13 @@ const Board = () => {
     sendMessage,
     wsConnected,
     pendingAction,
+    pendingBlock,
+    setPendingBlock,
     inJail,
     insufficientFunds,
     setInsufficientFunds,
+    rentPayment,
+    setRentPayment,
   } = useGame();
 
   const accountId = walletAddress;
@@ -274,6 +279,7 @@ const Board = () => {
       passProperty();
     }
     setSelectedCard(null);
+    setPendingBlock(null);
   };
 
 
@@ -312,7 +318,7 @@ const Board = () => {
             <Card name="New York Avenue" icon="/yellow_card.png" amount="$200" position={10} players={playerPositions} onClick={() => handleCardClick("New York Avenue", "$200", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Free Parking" icon="/yellow_card.png" amount="$0" position={11} players={playerPositions} onClick={() => handleCardClick("Free Parking", "$0", "/yellow_card.png")} />
+            <Card name="Party House" icon="/yellow_card.png" amount="$0" position={11} players={playerPositions} onClick={() => handleCardClick("Party House", "$0", "/yellow_card.png")} />
           </div>
 
           {/* Second row - only first and last positions */}
@@ -337,15 +343,15 @@ const Board = () => {
 
           {/* Third row - only first and last positions */}
           <div className="grid place-items-center">
-            <Card name="States Avenue" icon="/yellow_card.png" amount="$140" position={5} players={playerPositions} onClick={() => handleCardClick("States Avenue", "$140", "/yellow_card.png")} />
+            <Card name="Vermont Avenue" icon="/yellow_card.png" amount="$100" position={5} players={playerPositions} onClick={() => handleCardClick("Vermont Avenue", "$100", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Atlantic Avenue" icon="/yellow_card.png" amount="$260" position={13} players={playerPositions} onClick={() => handleCardClick("Atlantic Avenue", "$260", "/yellow_card.png")} />
+            <Card name="Marvin Gardens" icon="/yellow_card.png" amount="$280" position={13} players={playerPositions} onClick={() => handleCardClick("Marvin Gardens", "$280", "/yellow_card.png")} />
           </div>
 
           {/* Bottom row - 5 cards */}
           <div className="grid place-items-center">
-            <Card name="Vermont Avenue" icon="/yellow_card.png" amount="$100" position={4} players={playerPositions} onClick={() => handleCardClick("Vermont Avenue", "$100", "/yellow_card.png")} />
+            <Card name="Rest House" icon="/yellow_card.png" amount="$0" position={4} players={playerPositions} onClick={() => handleCardClick("Rest House", "$0", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
             <Card name="Oriental Avenue" icon="/yellow_card.png" amount="$100" position={3} players={playerPositions} onClick={() => handleCardClick("Oriental Avenue", "$100", "/yellow_card.png")} />
@@ -364,9 +370,12 @@ const Board = () => {
         <CardModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          cardName={selectedCard?.name}
-          cardAmount={selectedCard?.amount}
+          cardName={pendingBlock?.name || selectedCard?.name}
+          cardAmount={pendingBlock?.price ? `$${pendingBlock.price}` : selectedCard?.amount}
           cardIcon={selectedCard?.icon}
+          cardDescription={pendingBlock?.description}
+          cardRent={pendingBlock?.rent}
+          cardImage={pendingBlock?.imageURL}
           onBuy={buyProperty}
           onPass={passProperty}
         />
@@ -387,6 +396,15 @@ const Board = () => {
           ownedProperties={insufficientFunds?.ownedProperties || []}
           onSellProperty={sellProperty}
           onClose={() => setInsufficientFunds(null)}
+        />
+
+        {/* Rent Payment Modal */}
+        <RentPaymentModal
+          isOpen={!!rentPayment}
+          ownerName={rentPayment?.ownerName || ''}
+          amount={rentPayment?.amount || 0}
+          propertyName={rentPayment?.propertyName || ''}
+          onClose={() => setRentPayment(null)}
         />
       </div>
   )

@@ -53,6 +53,10 @@ interface GameContextType {
   pendingAction: string | null;
   setPendingAction: (action: string | null) => void;
 
+  // Pending Block (for property details in modal)
+  pendingBlock: any | null;
+  setPendingBlock: (block: any) => void;
+
   // Jail State
   inJail: boolean;
   setInJail: (inJail: boolean) => void;
@@ -64,6 +68,14 @@ interface GameContextType {
     ownedProperties: string[];
   } | null;
   setInsufficientFunds: (data: any) => void;
+
+  // Rent Payment State
+  rentPayment: {
+    ownerName: string;
+    amount: number;
+    propertyName: string;
+  } | null;
+  setRentPayment: (data: any) => void;
 
   // Chat Messages
   chatMessages: Array<{
@@ -87,8 +99,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [creatorId, setCreatorId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [pendingBlock, setPendingBlock] = useState<any>(null);
   const [inJail, setInJail] = useState<boolean>(false);
   const [insufficientFunds, setInsufficientFunds] = useState<any>(null);
+  const [rentPayment, setRentPayment] = useState<any>(null);
   const [chatMessages, setChatMessages] = useState<Array<{
     playerId: string;
     playerName: string;
@@ -152,11 +166,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
       case 'BUY_OR_PASS':
         setPendingAction('BUY_OR_PASS');
+        setPendingBlock(message.block);
         console.log('🏠 Buy or pass decision required for:', message.block?.name);
         break;
 
       case 'PROPERTY_BOUGHT':
         setPendingAction(null);
+        setPendingBlock(null);
         setServerPlayers(prev =>
           prev.map(p => p.id === message.playerId ? message.player : p)
         );
@@ -165,6 +181,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
       case 'PROPERTY_PASSED':
         setPendingAction(null);
+        setPendingBlock(null);
         console.log('⏭️ Property passed:', message.blockName);
         break;
 
@@ -172,6 +189,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         setServerPlayers(prev =>
           prev.map(p => p.id === message.playerId ? message.player : p)
         );
+        // Close the sell properties modal immediately after selling
+        if (message.playerId === walletAddress) {
+          setInsufficientFunds(null);
+        }
         console.log('💰 Property sold:', message.blockName, 'for', message.sellPrice);
         break;
 
@@ -183,6 +204,16 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             return p;
           })
         );
+        // Close insufficient funds modal when rent is successfully paid
+        if (message.payerId === walletAddress) {
+          setInsufficientFunds(null);
+          // Show rent payment modal
+          setRentPayment({
+            ownerName: message.owner?.name || 'Unknown',
+            amount: message.amount,
+            propertyName: message.blockName
+          });
+        }
         console.log('💸 Rent paid:', message.amount, 'for', message.blockName);
         break;
 
@@ -294,10 +325,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     setCreatorId,
     pendingAction,
     setPendingAction,
+    pendingBlock,
+    setPendingBlock,
     inJail,
     setInJail,
     insufficientFunds,
     setInsufficientFunds,
+    rentPayment,
+    setRentPayment,
     chatMessages,
     addChatMessage,
   };

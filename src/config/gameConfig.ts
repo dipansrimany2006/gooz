@@ -46,16 +46,21 @@ export const PLAYER_CONFIGS = {
   }
 } as const;
 
-// Position mapping from server (20 positions) to frontend (15 positions)
+// Position mapping from server to frontend (1:1 mapping, both have 14 positions 0-13)
 export const POSITION_MAPPING = {
-  // Server position -> Frontend position
-  0: 0,   // GO -> GO
-  1: 1, 
-  2: 2, 3: 3, 4: 4,      // Properties 1-4
-  5: 11,  // JAIL -> JAIL position
-  6: 12, 7: 13, 8: 14, 9: 5,   // Properties
-  10: 4,  // Free Parking -> Free Parking
-  11: 6, 12: 7, 13: 8, 14: 9,  // Properties
-  15: 12, // Go to Jail -> Property area
-  16: 10, 17: 9, 18: 8, 19: 7, // Final properties
+  // Server position -> Frontend position (identical)
+  0: 0,   // GO
+  1: 1,   // Mediterranean Avenue
+  2: 2,   // Baltic Avenue
+  3: 3,   // Oriental Avenue
+  4: 4,   // Rest House
+  5: 5,   // Vermont Avenue
+  6: 6,   // Virginia Avenue
+  7: 7,   // Jail
+  8: 8,   // St. James Place
+  9: 9,   // Tennessee Avenue
+  10: 10, // New York Avenue
+  11: 11, // Party House
+  12: 12, // Kentucky Avenue
+  13: 13, // Marvin Gardens
 } as const;
