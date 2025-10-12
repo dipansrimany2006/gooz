@@ -230,6 +230,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         if (message.escaped) {
           setInJail(false);
           setPendingAction(null);
+        } else {
+          // Failed to escape - close modal, stay in jail for next turn
+          setPendingAction(null);
         }
         console.log(`🎲 Jail roll: ${message.diceRoll} - ${message.escaped ? 'ESCAPED!' : 'Still in jail'}`);
         break;
