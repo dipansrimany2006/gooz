@@ -3,6 +3,7 @@ interface PlayerPosition {
   name: string;
   colorCode: string;
   currentPosition: number;
+  index: number;
 }
 
 interface CardProps {
@@ -10,28 +11,36 @@ interface CardProps {
   icon: string;
   amount: string;
   isSpecial?: boolean;
+  isCorner?: boolean;
   position: number;
   players?: PlayerPosition[];
   onClick?: () => void;
 }
 
-export default function Card({ name, icon, amount, isSpecial = false, position, players = [] }: CardProps) {
+export default function Card({ name, icon, amount, isSpecial = false, isCorner = false, position, players = [] }: CardProps) {
   // Filter players at this card's position (position is already transformed)
   const playersAtPosition = players.filter(player => player.currentPosition === position);
 
   return (
     <div
-      className="relative w-40 h-40 flex items-center justify-center border-4 bg-[#F6BB36] rounded-4xl cursor-pointer hover:bg-[#F4C430] transition-colors"
+      className="relative w-40 h-40 flex items-center justify-center border-4 bg-[#F6BB36] rounded-4xl cursor-pointer hover:bg-[#F4C430] transition-colors overflow-hidden"
     >
-      {/* <img
-        src="/yellow-card.png"
-        alt="card background"
-        className="absolute inset-0 w-full h-full object-contain"
-      /> */}
+      {/* Property image as background (only for non-corner blocks) */}
+      {!isCorner && (
+        <>
+          <img
+            src={icon}
+            alt={name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Overlay for text readability */}
+          <div className="absolute inset-0 bg-black/20"></div>
+        </>
+      )}
+
       <div className="relative z-10 flex flex-col items-center justify-center gap-2">
-        <span className="text-black text-sm uppercase font-chewy">{name}</span>
-        <img src="/duck.png" alt={name} className="w-14 h-14" />
-        <span className="text-black text-sm">{amount}</span>
+        <span className={`text-sm uppercase font-bold ${isCorner ? 'text-black' : 'text-white drop-shadow-lg'}`}>{name}</span>
+        <span className={`text-lg font-bold ${isCorner ? 'text-black' : 'text-white drop-shadow-lg'}`}>{amount}</span>
       </div>
 
       {/* Player indicators positioned absolutely on top of card */}
@@ -45,7 +54,7 @@ export default function Card({ name, icon, amount, isSpecial = false, position, 
             }}
             title={player.name}
           >
-            {player.name.charAt(0)}
+            {player.index}
           </div>
         ))}
       </div>

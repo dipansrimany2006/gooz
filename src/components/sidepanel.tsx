@@ -61,8 +61,8 @@ const Sidepanel = ({roomid}: {roomid: string}) => {
                 walletAddress={mockWallets[index] || undefined}
                 backgroundColor={player.colorCode || playerColors[index]}
                 poolAmt={player.poolAmt}
-                position={player.position}
-                isCurrentPlayer={currentPlayer === player.id}
+                position={index + 1}
+                isCurrentPlayer={currentPlayer === player.id && player.id === walletAddress}
               />
             ))
           ) : (
