@@ -16,6 +16,7 @@ interface PlayerPosition {
   colorCode: string;
   currentPosition: number;
   targetPosition?: number;
+  index: number;
 }
 
 interface GameContextType {
@@ -288,12 +289,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Initialize WebSocket connection
-  const { isConnected: wsConnected, sendMessage } = useWebSocket('ws://localhost:8080', {
-    onMessage: handleWebSocketMessage,
-    onOpen: () => console.log('🔌 Connected to game server'),
-    onClose: () => console.log('🔌 Disconnected from game server'),
-    autoConnect: true,
-  });
+  const { isConnected: wsConnected, sendMessage } = useWebSocket(
+    process.env.NEXT_PUBLIC_BACKEND_URL || 'ws://localhost:8080',
+    {
+      onMessage: handleWebSocketMessage,
+      onOpen: () => console.log('🔌 Connected to game server'),
+      onClose: () => console.log('🔌 Disconnected from game server'),
+      autoConnect: true,
+    }
+  );
 
   // Load gameId from localStorage on mount
   useEffect(() => {
