@@ -18,7 +18,7 @@ interface UseWebSocketOptions {
 export const useWebSocket = (url: string = 'ws://localhost:8080', options: UseWebSocketOptions = {}) => {
   const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const hasConnectedRef = useRef(false);
   const { onMessage, onOpen, onClose, onError, autoConnect = true } = options;
 
