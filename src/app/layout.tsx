@@ -22,16 +22,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-      <GameProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${chewy.variable} antialiased`}
+      >
         <ThirdwebProvider>
-          <html lang="en" suppressHydrationWarning>
-            <body
-              className={`${chewy.variable} antialiased`}
-            >
-              {children}
-            </body>
-          </html>
+          <GameProvider>
+            {children}
+          </GameProvider>
         </ThirdwebProvider>
-      </GameProvider>
+      </body>
+    </html>
   );
 }

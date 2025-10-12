@@ -1,10 +1,9 @@
 import React from 'react'
 import Player from './player'
 import { useGame } from '../context/GameContext'
-import { GAME_CONFIG } from '../config/gameConfig'
 
 const Sidepanel = ({roomid}: {roomid: string}) => {
-  const { serverPlayers, currentPlayer, gameId, isConnected } = useGame();
+  const { serverPlayers, currentPlayer, gameId, isConnected, walletAddress, creatorId, sendMessage, wsConnected } = useGame();
 
   // Define color mapping for players
   const playerColors = ['#1ABCFE', '#A259FF', '#0ACF83', '#FF7262'];
@@ -16,6 +15,28 @@ const Sidepanel = ({roomid}: {roomid: string}) => {
     "DQAi6engSi6u4qcEpdpM1ttCrkWgiehpieKKj3s4p452",
     "9aCkmVoW86yFaZNdstUymjvsLTfZeKUXGMUrSdjgh8A3"
   ];
+
+  const isCreator = walletAddress === creatorId;
+  const canStartGame = isCreator && serverPlayers.length >= 2 && !currentPlayer;
+
+  const handleStartGame = () => {
+    if (!gameId || !walletAddress || !wsConnected) {
+      console.warn('Cannot start game: missing requirements');
+      return;
+    }
+
+    const success = sendMessage({
+      type: 'START_GAME',
+      gameId: gameId,
+      playerId: walletAddress,
+    });
+
+    if (success) {
+      console.log('✅ START_GAME message sent');
+    } else {
+      console.error('❌ Failed to send START_GAME message');
+    }
+  };
 
   return (
     <div className=''>
@@ -55,14 +76,33 @@ const Sidepanel = ({roomid}: {roomid: string}) => {
             <div className='text-center mt-4 p-2 bg-yellow-100 rounded'>
               <div className='text-sm font-bold'>Current Player</div>
               <div className='text-xs'>
-                {currentPlayer === GAME_CONFIG.PLAYER_ID ? 'Your Turn!' : 'Waiting...'}
+                {currentPlayer === walletAddress ? 'Your Turn!' : 'Waiting...'}
               </div>
             </div>
           )}
         </div>
 
-        {/* Game Stats */}
-        <div className='absolute bottom-4 left-4 right-4'>
+        {/* Game Stats and Start Button */}
+        <div className='absolute bottom-4 left-4 right-4 space-y-2'>
+          {/* Start Game Button (only for creator before game starts) */}
+          {canStartGame && (
+            <button
+              onClick={handleStartGame}
+              className='w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition-colors'
+            >
+              START GAME ({serverPlayers.length} Players)
+            </button>
+          )}
+
+          {/* Waiting message for non-creators */}
+          {!currentPlayer && !isCreator && serverPlayers.length >= 2 && (
+            <div className='bg-yellow-100 rounded p-2'>
+              <div className='text-xs text-center font-bold'>
+                Waiting for creator to start...
+              </div>
+            </div>
+          )}
+
           <div className='bg-white/50 rounded p-2'>
             <div className='text-xs text-center'>
               Players: {serverPlayers.length}/4

@@ -1,7 +1,10 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Card from './card'
 import CardModal from './cardmodal'
+import JailModal from './JailModal'
+import SellPropertiesModal from './SellPropertiesModal'
+import RentPaymentModal from './RentPaymentModal'
 import { Button } from './ui/button'
 import { GAME_CONFIG, POSITION_MAPPING } from '../config/gameConfig'
 import { useGame } from '../context/GameContext'
@@ -26,23 +29,30 @@ const Board = () => {
   // Use shared game context
   const {
     gameId,
-    currentPlayer, setCurrentPlayer,
+    currentPlayer,
     playerPositions, setPlayerPositions,
-    serverPlayers, setServerPlayers,
-    diceRoll, setDiceRoll
+    serverPlayers,
+    diceRoll,
+    walletAddress,
+    sendMessage,
+    wsConnected,
+    pendingAction,
+    pendingBlock,
+    setPendingBlock,
+    inJail,
+    insufficientFunds,
+    setInsufficientFunds,
+    rentPayment,
+    setRentPayment,
   } = useGame();
 
-  // TODO: Replace with Thirdweb wallet connection
-  const accountId = null;
-
-
-  // Game settings from config
-  const { AUTO_CREATE_GAME, AUTO_JOIN_EXISTING } = GAME_CONFIG;
+  const accountId = walletAddress;
 
   // Position mapping: Server (20 positions) → Frontend (15 positions)
-  const mapServerToFrontend = (serverPosition: number): number => {
+  // Wrapped in useCallback to prevent infinite loop in useEffect
+  const mapServerToFrontend = useCallback((serverPosition: number): number => {
     return POSITION_MAPPING[serverPosition as keyof typeof POSITION_MAPPING] ?? serverPosition % 15;
-  };
+  }, []); // Empty deps - POSITION_MAPPING is a constant
 
   // Sound utility function
   const playSound = async () => {
@@ -88,16 +98,26 @@ const Board = () => {
     console.log('- Player ID (accountId):', accountId);
     console.log('- Is my turn?:', currentPlayer === accountId);
 
-    if (gameId && currentPlayer === accountId && accountId) {
+    if (gameId && currentPlayer === accountId && accountId && wsConnected) {
       // Play sound when rolling dice
       playSound();
 
-      // TODO: Replace with API call to roll dice
-      console.log('Roll dice clicked');
+      const success = sendMessage({
+        type: 'ROLL_DICE',
+        gameId: gameId,
+        playerId: accountId,
+      });
+
+      if (success) {
+        console.log('✅ ROLL_DICE message sent');
+      } else {
+        console.error('❌ Failed to send ROLL_DICE message');
+      }
     } else {
       console.log('❌ Cannot roll dice:');
       console.log('  - Game ID:', gameId ? gameId : 'Missing');
       console.log('  - Account ID:', accountId ? accountId : 'Not connected');
+      console.log('  - WebSocket:', wsConnected ? 'Connected' : 'Disconnected');
       console.log('  - Turn check:', currentPlayer === accountId ? 'My turn' : 'Not my turn');
     }
   };
@@ -114,17 +134,94 @@ const Board = () => {
 
   // Buy property function
   const buyProperty = () => {
-    if (gameId && accountId) {
-      // TODO: Replace with API call to buy property
-      console.log('🏠 Buy property clicked');
+    if (gameId && accountId && wsConnected) {
+      const success = sendMessage({
+        type: 'BUY_PROPERTY',
+        gameId: gameId,
+        playerId: accountId,
+      });
+
+      if (success) {
+        console.log('✅ BUY_PROPERTY message sent');
+      } else {
+        console.error('❌ Failed to send BUY_PROPERTY message');
+      }
+    } else {
+      console.log('❌ Cannot buy property: missing gameId, accountId, or WebSocket connection');
     }
   };
 
   // Pass property function
   const passProperty = () => {
-    if (gameId && accountId) {
-      // TODO: Replace with API call to pass property
-      console.log('🚫 Pass property clicked');
+    if (gameId && accountId && wsConnected) {
+      const success = sendMessage({
+        type: 'PASS_PROPERTY',
+        gameId: gameId,
+        playerId: accountId,
+      });
+
+      if (success) {
+        console.log('✅ PASS_PROPERTY message sent');
+      } else {
+        console.error('❌ Failed to send PASS_PROPERTY message');
+      }
+    } else {
+      console.log('❌ Cannot pass property: missing gameId, accountId, or WebSocket connection');
+    }
+  };
+
+  // Sell property function
+  const sellProperty = (blockName: string) => {
+    if (gameId && accountId && wsConnected) {
+      const success = sendMessage({
+        type: 'SELL_PROPERTY',
+        gameId: gameId,
+        playerId: accountId,
+        blockName: blockName,
+      });
+
+      if (success) {
+        console.log('✅ SELL_PROPERTY message sent for:', blockName);
+      } else {
+        console.error('❌ Failed to send SELL_PROPERTY message');
+      }
+    } else {
+      console.log('❌ Cannot sell property: missing gameId, accountId, or WebSocket connection');
+    }
+  };
+
+  // Jail choice handlers
+  const handleJailPay = () => {
+    if (gameId && accountId && wsConnected) {
+      const success = sendMessage({
+        type: 'JAIL_CHOICE',
+        gameId: gameId,
+        playerId: accountId,
+        jailChoice: 'pay',
+      });
+
+      if (success) {
+        console.log('✅ JAIL_CHOICE (pay) message sent');
+      } else {
+        console.error('❌ Failed to send JAIL_CHOICE message');
+      }
+    }
+  };
+
+  const handleJailRoll = () => {
+    if (gameId && accountId && wsConnected) {
+      const success = sendMessage({
+        type: 'JAIL_CHOICE',
+        gameId: gameId,
+        playerId: accountId,
+        jailChoice: 'roll',
+      });
+
+      if (success) {
+        console.log('✅ JAIL_CHOICE (roll) message sent');
+      } else {
+        console.error('❌ Failed to send JAIL_CHOICE message');
+      }
     }
   };
 
@@ -132,22 +229,27 @@ const Board = () => {
   // Remove websocket message handler
 
   // Local state for modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<{ name: string; amount: string; icon: string } | null>(null);
+
+  // Show modal when server requests buy/pass decision
+  const isModalOpen = pendingAction === 'BUY_OR_PASS';
 
 
   // Initialize demo players at GO (logical position 0, visual position 11)
   // TODO: Set up API polling or other state management
 
-  // Expose join function to global scope for testing
+  // Update player positions when serverPlayers change
   useEffect(() => {
-    (window as any).testJoinGame = joinGame;
-    (window as any).testRollDice = rollDice;
-    return () => {
-      delete (window as any).testJoinGame;
-      delete (window as any).testRollDice;
-    };
-  }, [gameId]);
+    if (serverPlayers && serverPlayers.length > 0) {
+      const positions: PlayerPosition[] = serverPlayers.map(player => ({
+        playerId: player.id,
+        name: player.name,
+        colorCode: player.colorCode,
+        currentPosition: mapServerToFrontend(player.position)
+      }));
+      setPlayerPositions(positions);
+    }
+  }, [serverPlayers, mapServerToFrontend]);
 
   const updatePlayerPosition = (playerId: string, newPosition: number) => {
     setPlayerPositions((prev: PlayerPosition[]) => prev.map((player: PlayerPosition) =>
@@ -169,12 +271,15 @@ const Board = () => {
 
   const handleCardClick = (name: string, amount: string, icon: string) => {
     setSelectedCard({ name, amount, icon });
-    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
+    // User closed modal without buying/passing - send PASS message
+    if (pendingAction === 'BUY_OR_PASS') {
+      passProperty();
+    }
     setSelectedCard(null);
+    setPendingBlock(null);
   };
 
 
@@ -213,7 +318,7 @@ const Board = () => {
             <Card name="New York Avenue" icon="/yellow_card.png" amount="$200" position={10} players={playerPositions} onClick={() => handleCardClick("New York Avenue", "$200", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Free Parking" icon="/yellow_card.png" amount="$0" position={11} players={playerPositions} onClick={() => handleCardClick("Free Parking", "$0", "/yellow_card.png")} />
+            <Card name="Party House" icon="/yellow_card.png" amount="$0" position={11} players={playerPositions} onClick={() => handleCardClick("Party House", "$0", "/yellow_card.png")} />
           </div>
 
           {/* Second row - only first and last positions */}
@@ -238,15 +343,15 @@ const Board = () => {
 
           {/* Third row - only first and last positions */}
           <div className="grid place-items-center">
-            <Card name="States Avenue" icon="/yellow_card.png" amount="$140" position={5} players={playerPositions} onClick={() => handleCardClick("States Avenue", "$140", "/yellow_card.png")} />
+            <Card name="Vermont Avenue" icon="/yellow_card.png" amount="$100" position={5} players={playerPositions} onClick={() => handleCardClick("Vermont Avenue", "$100", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
-            <Card name="Atlantic Avenue" icon="/yellow_card.png" amount="$260" position={13} players={playerPositions} onClick={() => handleCardClick("Atlantic Avenue", "$260", "/yellow_card.png")} />
+            <Card name="Marvin Gardens" icon="/yellow_card.png" amount="$280" position={13} players={playerPositions} onClick={() => handleCardClick("Marvin Gardens", "$280", "/yellow_card.png")} />
           </div>
 
           {/* Bottom row - 5 cards */}
           <div className="grid place-items-center">
-            <Card name="Vermont Avenue" icon="/yellow_card.png" amount="$100" position={4} players={playerPositions} onClick={() => handleCardClick("Vermont Avenue", "$100", "/yellow_card.png")} />
+            <Card name="Rest House" icon="/yellow_card.png" amount="$0" position={4} players={playerPositions} onClick={() => handleCardClick("Rest House", "$0", "/yellow_card.png")} />
           </div>
           <div className="grid place-items-center">
             <Card name="Oriental Avenue" icon="/yellow_card.png" amount="$100" position={3} players={playerPositions} onClick={() => handleCardClick("Oriental Avenue", "$100", "/yellow_card.png")} />
@@ -265,11 +370,41 @@ const Board = () => {
         <CardModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          cardName={selectedCard?.name}
-          cardAmount={selectedCard?.amount}
+          cardName={pendingBlock?.name || selectedCard?.name}
+          cardAmount={pendingBlock?.price ? `$${pendingBlock.price}` : selectedCard?.amount}
           cardIcon={selectedCard?.icon}
+          cardDescription={pendingBlock?.description}
+          cardRent={pendingBlock?.rent}
+          cardImage={pendingBlock?.imageURL}
           onBuy={buyProperty}
           onPass={passProperty}
+        />
+
+        {/* Jail Choice Modal */}
+        <JailModal
+          isOpen={inJail && pendingAction === 'JAIL_CHOICE'}
+          onPay={handleJailPay}
+          onRoll={handleJailRoll}
+          onClose={() => {}}
+        />
+
+        {/* Sell Properties Modal (when insufficient funds) */}
+        <SellPropertiesModal
+          isOpen={!!insufficientFunds}
+          rentAmount={insufficientFunds?.rentAmount || 0}
+          currentMoney={insufficientFunds?.currentMoney || 0}
+          ownedProperties={insufficientFunds?.ownedProperties || []}
+          onSellProperty={sellProperty}
+          onClose={() => setInsufficientFunds(null)}
+        />
+
+        {/* Rent Payment Modal */}
+        <RentPaymentModal
+          isOpen={!!rentPayment}
+          ownerName={rentPayment?.ownerName || ''}
+          amount={rentPayment?.amount || 0}
+          propertyName={rentPayment?.propertyName || ''}
+          onClose={() => setRentPayment(null)}
         />
       </div>
   )

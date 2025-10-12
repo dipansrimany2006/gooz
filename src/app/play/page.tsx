@@ -1,10 +1,7 @@
 'use client'
-import { Button } from '@/components/ui/button';
-import Card from "../../components/card";
-import { useState } from 'react';
 import Sidepanel from '@/components/sidepanel';
 import Board from '@/components/board';
-import ConnectWalletButton from '../../components/ConnectWalletButton';
+import ConnectWalletButton from '@/components/ConnectWalletButton';
 import ChatRoom from '@/components/chatRoom';
 import { useGame } from '@/context/GameContext';
 
