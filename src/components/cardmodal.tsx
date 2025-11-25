@@ -12,18 +12,25 @@ interface CardModalProps {
   cardImage?: string;
   onBuy?: () => void;
   onPass?: () => void;
+  playerBalance?: number;
 }
 
-const CardModal = ({ isOpen, onClose, cardName, cardAmount, cardIcon, cardDescription, cardRent, cardImage, onBuy, onPass }: CardModalProps) => {
+const CardModal = ({ isOpen, onClose, cardName, cardAmount, cardIcon, cardDescription, cardRent, cardImage, onBuy, onPass, playerBalance }: CardModalProps) => {
+  // Extract numeric value from cardAmount (e.g., "$100" -> 100)
+  const propertyPrice = cardAmount ? parseFloat(cardAmount.replace('$', '')) : 0;
+  const hasInsufficientBalance = playerBalance !== undefined && playerBalance < propertyPrice;
+
   const buttons = (
     <>
       <img
         src="/buy_img.png"
         alt="Buy"
-        className="cursor-pointer hover:opacity-80 transition-opacity"
+        className={`transition-opacity ${hasInsufficientBalance ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:opacity-80'}`}
         onClick={() => {
-          onBuy?.();
-          onClose();
+          if (!hasInsufficientBalance) {
+            onBuy?.();
+            onClose();
+          }
         }}
       />
       <img
@@ -85,6 +92,14 @@ const CardModal = ({ isOpen, onClose, cardName, cardAmount, cardIcon, cardDescri
             </div>
           )}
         </div>
+
+        {/* Insufficient Balance Warning */}
+        {hasInsufficientBalance && (
+          <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mt-2'>
+            <p className='text-sm font-semibold'>⚠️ Insufficient Balance</p>
+            <p className='text-xs'>Your balance: ${playerBalance} | Required: {cardAmount}</p>
+          </div>
+        )}
       </div>
     </ModalTemplate>
   )

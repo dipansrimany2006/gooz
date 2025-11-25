@@ -5,9 +5,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useGame } from '@/context/GameContext';
 import ConnectWalletButton from '@/components/ConnectWalletButton';
 import { useRouter } from 'next/navigation';
-// COMMENTED OUT FOR TESTING - Re-enable when ready for blockchain integration
-// import { depositToGame, u2uTestnet, getEntryFee } from '@/utils/contract';
-import { u2uTestnet, getEntryFee } from '@/utils/contract';
+import { depositToGame, celoMainnet, getEntryFee } from '@/utils/contract';
 import { ethers } from 'ethers';
 
 function HomePage() {
@@ -19,7 +17,7 @@ function HomePage() {
   const accountId = account?.address || null;
   const isConnected = !!account;
   const currentChainId = activeChain?.id || (account as any)?.chain?.id;
-  const isCorrectNetwork = currentChainId === u2uTestnet.id;
+  const isCorrectNetwork = currentChainId === celoMainnet.id;
   const networkName = activeChain?.name || (account as any)?.chain?.name || 'Unknown';
 
   const [roomId, setRoomId] = useState('');
@@ -44,10 +42,10 @@ function HomePage() {
       console.log('  - activeChain.name:', activeChain?.name);
       console.log('  - account.chain:', (account as any)?.chain);
       console.log('  - Detected Chain ID:', currentChainId);
-      console.log('  - Expected Chain ID (U2U Testnet):', u2uTestnet.id);
-      console.log('  - Type comparison:', typeof currentChainId, 'vs', typeof u2uTestnet.id);
-      console.log('  - Strict equality:', currentChainId === u2uTestnet.id);
-      console.log('  - Loose equality:', currentChainId == u2uTestnet.id);
+      console.log('  - Expected Chain ID (Celo Mainnet):', celoMainnet.id);
+      console.log('  - Type comparison:', typeof currentChainId, 'vs', typeof celoMainnet.id);
+      console.log('  - Strict equality:', currentChainId === celoMainnet.id);
+      console.log('  - Loose equality:', currentChainId == celoMainnet.id);
       console.log('  - Is Correct Network:', isCorrectNetwork);
       console.log('  - Network Name:', networkName);
     }
@@ -66,13 +64,13 @@ function HomePage() {
       try {
         if (isCorrectNetwork) {
           const fee = await getEntryFee();
-          const feeInU2U = ethers.formatEther(fee);
-          setEntryFeeDisplay(feeInU2U);
-          console.log('📋 Entry fee fetched:', feeInU2U, 'U2U');
+          const feeInCELO = ethers.formatEther(fee);
+          setEntryFeeDisplay(feeInCELO);
+          console.log('📋 Entry fee fetched:', feeInCELO, 'CELO');
         }
       } catch (error) {
         console.error('Failed to fetch entry fee:', error);
-        setEntryFeeDisplay('5'); // Fallback
+        setEntryFeeDisplay('0.01'); // Fallback to 0.01 CELO
       }
     };
 
@@ -92,16 +90,30 @@ function HomePage() {
     setDepositStatus('');
 
     try {
-      // Step 1: Deposit to smart contract
-      // COMMENTED OUT FOR TESTING - Re-enable when ready for blockchain integration
-      // const tempGameId = 'CREATE_' + Date.now();
-      // setDepositStatus(`💰 Depositing ${entryFeeDisplay} U2U to contract...`);
-      // console.log('🎮 Step 1: Depositing to contract...');
-      // const depositResult = await depositToGame(tempGameId, account);
-      // if (!depositResult.success) {
-      //   throw new Error('Deposit transaction failed');
-      // }
-      // console.log('✅ Deposit successful:', depositResult.transactionHash);
+      // Step 1: Generate 8-character game ID (matching backend format)
+      const generateGameId = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 8; i++) {
+          result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+      };
+
+      const tempGameId = generateGameId(); // e.g., "A1B2C3D4"
+      setDepositStatus(`💰 Depositing ${entryFeeDisplay} CELO to contract...`);
+      console.log('🎮 Step 1: Player depositing to contract...');
+
+      const depositResult = await depositToGame(tempGameId, account);
+      if (!depositResult.success) {
+        throw new Error('Deposit transaction failed');
+      }
+      console.log('✅ Player deposit successful:', depositResult.transactionHash);
+      console.log('📝 GameId used for deposit:', tempGameId);
+
+      // Wait 2 seconds for RPC nodes to sync the transaction state
+      setDepositStatus('⏳ Waiting for blockchain confirmation...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       setDepositStatus('🎮 Creating game...');
 
@@ -109,12 +121,16 @@ function HomePage() {
       const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00'];
       const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
+      console.log('📤 Sending CREATE_GAME with tempGameId:', tempGameId);
+
       const success = sendMessage({
         type: 'CREATE_GAME',
+        tempGameId: tempGameId,  // Send the gameId we deposited to
         playerId: accountId,
         playerName: accountId.substring(0, 8),
         colorCode: randomColor,
         stakeAmount: entryFeeDisplay,
+        transactionHash: depositResult.transactionHash,  // Send tx hash for verification
       });
 
       if (success) {
@@ -155,15 +171,20 @@ function HomePage() {
     try {
       const gameId = roomId.toUpperCase();
 
-      // Step 1: Deposit to smart contract
-      // COMMENTED OUT FOR TESTING - Re-enable when ready for blockchain integration
-      // setDepositStatus(`💰 Depositing ${entryFeeDisplay} U2U to contract...`);
-      // console.log('🎮 Step 1: Depositing to join game:', gameId);
-      // const depositResult = await depositToGame(gameId, account);
-      // if (!depositResult.success) {
-      //   throw new Error('Deposit transaction failed');
-      // }
-      // console.log('✅ Deposit successful:', depositResult.transactionHash);
+      // Step 1: Deposit to smart contract (PLAYER PAYS)
+      setDepositStatus(`💰 Depositing ${entryFeeDisplay} CELO to contract...`);
+      console.log('🎮 Step 1: Player depositing to join game:', gameId);
+
+      const depositResult = await depositToGame(gameId, account);
+      if (!depositResult.success) {
+        throw new Error('Deposit transaction failed');
+      }
+      console.log('✅ Player deposit successful:', depositResult.transactionHash);
+      console.log('📝 GameId used for deposit:', gameId);
+
+      // Wait 2 seconds for RPC nodes to sync the transaction state
+      setDepositStatus('⏳ Waiting for blockchain confirmation...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       setDepositStatus('🎮 Joining game...');
 
@@ -215,7 +236,7 @@ function HomePage() {
             <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isCorrectNetwork ? 'bg-green-600/80' : 'bg-red-600/80'}`}>
               <div className={`w-2 h-2 rounded-full ${isCorrectNetwork ? 'bg-green-200' : 'bg-red-200'}`}></div>
               <span className='text-white text-sm font-medium'>
-                {isCorrectNetwork ? '🌐 U2U Testnet' : `⚠️ Wrong Network (${networkName})`}
+                {isCorrectNetwork ? '🌐 Celo Mainnet' : `⚠️ Wrong Network (${networkName})`}
               </span>
             </div>
           )}
@@ -236,11 +257,11 @@ function HomePage() {
         {isConnected && !isCorrectNetwork && (
           <div className='w-[700px] min-h-[60px] flex flex-col items-center justify-center gap-2'>
             <div className='bg-yellow-500/90 text-white px-6 py-3 rounded-lg border-2 border-yellow-600 shadow-lg'>
-              <p className='text-center font-medium'>⚠️ Please switch to U2U Nebulas Testnet to play!</p>
+              <p className='text-center font-medium'>⚠️ Please switch to Celo Mainnet to play!</p>
             </div>
             {/* Debug info */}
             <div className='bg-gray-800/90 text-white text-xs px-4 py-2 rounded border border-gray-600'>
-              <p>Debug: Detected Chain ID: {currentChainId || 'undefined'} | Expected: {u2uTestnet.id} | Match: {String(isCorrectNetwork)}</p>
+              <p>Debug: Detected Chain ID: {currentChainId || 'undefined'} | Expected: {celoMainnet.id} | Match: {String(isCorrectNetwork)}</p>
             </div>
           </div>
         )}

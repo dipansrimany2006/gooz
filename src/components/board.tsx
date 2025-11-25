@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import Card from './card'
 import CardModal from './cardmodal'
 import JailModal from './JailModal'
+import JailRollResultModal from './JailRollResultModal'
 import SellPropertiesModal from './SellPropertiesModal'
 import RentPaymentModal from './RentPaymentModal'
 import { Button } from './ui/button'
@@ -45,6 +46,8 @@ const Board = () => {
     setInsufficientFunds,
     rentPayment,
     setRentPayment,
+    jailRollResult,
+    setJailRollResult,
   } = useGame();
 
   const accountId = walletAddress;
@@ -342,6 +345,7 @@ const Board = () => {
           cardImage={pendingBlock?.imageURL}
           onBuy={buyProperty}
           onPass={passProperty}
+          playerBalance={serverPlayers.find(p => p.id === accountId)?.poolAmt}
         />
 
         {/* Jail Choice Modal */}
@@ -366,9 +370,18 @@ const Board = () => {
         <RentPaymentModal
           isOpen={!!rentPayment}
           ownerName={rentPayment?.ownerName || ''}
+          ownerWallet={rentPayment?.ownerWallet || ''}
           amount={rentPayment?.amount || 0}
           propertyName={rentPayment?.propertyName || ''}
           onClose={() => setRentPayment(null)}
+        />
+
+        {/* Jail Roll Result Modal */}
+        <JailRollResultModal
+          isOpen={!!jailRollResult}
+          diceRoll={jailRollResult?.diceRoll || 0}
+          escaped={jailRollResult?.escaped || false}
+          onClose={() => setJailRollResult(null)}
         />
       </div>
   )

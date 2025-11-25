@@ -54,6 +54,7 @@ const SellPropertiesModal = ({
         {/* Sell Properties Section */}
         <div>
           <h3 className='text-lg font-bold mb-3'>🏠 Sell Properties to Raise Funds:</h3>
+          <p className='text-xs text-gray-600'>Sell for 60% of purchase price</p>
           {ownedProperties.length === 0 ? (
             <div className='text-center p-8 bg-gray-50 rounded-lg'>
               <p className='text-lg font-bold text-red-600 mb-2'>💔 NO PROPERTIES TO SELL</p>
@@ -68,7 +69,7 @@ const SellPropertiesModal = ({
                 >
                   <div>
                     <p className='font-bold'>{property}</p>
-                    <p className='text-xs text-gray-600'>Sell for 60% of purchase price</p>
+                    <p> Property Price: {property} | Property Rent: {property}</p>
                   </div>
                   <button
                     onClick={() => onSellProperty(property)}

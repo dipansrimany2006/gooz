@@ -8,6 +8,7 @@ interface Player {
   position: number;
   colorCode: string;
   poolAmt: number;
+  ownedBlocks?: string[];
 }
 
 interface PlayerPosition {
@@ -73,10 +74,18 @@ interface GameContextType {
   // Rent Payment State
   rentPayment: {
     ownerName: string;
+    ownerWallet: string;
     amount: number;
     propertyName: string;
   } | null;
   setRentPayment: (data: any) => void;
+
+  // Jail Roll Result State
+  jailRollResult: {
+    diceRoll: number;
+    escaped: boolean;
+  } | null;
+  setJailRollResult: (data: any) => void;
 
   // Chat Messages
   chatMessages: Array<{
@@ -104,6 +113,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [inJail, setInJail] = useState<boolean>(false);
   const [insufficientFunds, setInsufficientFunds] = useState<any>(null);
   const [rentPayment, setRentPayment] = useState<any>(null);
+  const [jailRollResult, setJailRollResult] = useState<any>(null);
   const [chatMessages, setChatMessages] = useState<Array<{
     playerId: string;
     playerName: string;
@@ -211,6 +221,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           // Show rent payment modal
           setRentPayment({
             ownerName: message.owner?.name || 'Unknown',
+            ownerWallet: message.owner?.id || 'Unknown',
             amount: message.amount,
             propertyName: message.blockName
           });
@@ -265,6 +276,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         } else {
           // Failed to escape - close modal, stay in jail for next turn
           setPendingAction(null);
+        }
+        // Show jail roll result modal to player
+        if (message.playerId === walletAddress) {
+          setJailRollResult({
+            diceRoll: message.diceRoll,
+            escaped: message.escaped,
+          });
         }
         console.log(`🎲 Jail roll: ${message.diceRoll} - ${message.escaped ? 'ESCAPED!' : 'Still in jail'}`);
         break;
@@ -337,6 +355,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     setInsufficientFunds,
     rentPayment,
     setRentPayment,
+    jailRollResult,
+    setJailRollResult,
     chatMessages,
     addChatMessage,
   };

@@ -3,26 +3,19 @@ import { prepareContractCall, sendTransaction, readContract } from 'thirdweb';
 import { defineChain, getContract } from 'thirdweb';
 import { createThirdwebClient } from 'thirdweb';
 
-// Contract Configuration
-export const CONTRACT_ADDRESS = '0x39cECF23772596579276303a850cd641c3f152bA';
+// Contract Configuration - Celo Mainnet
+export const CONTRACT_ADDRESS = '0x2A9caFEDFc91d55E00B6d1514E39BeB940832b5D';
 
-// U2U Nebulas Testnet Chain Definition
-export const u2uTestnet = defineChain({
-  id: 2484, // U2U Nebulas Testnet chain ID
-  name: 'U2U Nebulas Testnet',
+// Celo Mainnet Chain Definition
+export const celoMainnet = defineChain({
+  id: 42220,
+  name: 'Celo Mainnet',
   nativeCurrency: {
-    name: 'U2U',
-    symbol: 'U2U',
+    name: 'CELO',
+    symbol: 'CELO',
     decimals: 18,
   },
-  rpc: 'https://rpc-nebulas-testnet.u2u.xyz',
-  blockExplorers: [
-    {
-      name: 'U2U Explorer',
-      url: 'https://testnet.u2uscan.xyz',
-    },
-  ],
-  testnet: true,
+  rpc: 'https://forno.celo.org',
 });
 
 // Initialize Thirdweb client
@@ -43,7 +36,7 @@ export function gameIdToBytes32(gameId: string): string {
 
 /**
  * Get the entry fee from the contract
- * @returns Entry fee in wei
+ * @returns Entry fee in wei (0.01 CELO)
  */
 export async function getEntryFee(): Promise<bigint> {
   try {
@@ -51,7 +44,7 @@ export async function getEntryFee(): Promise<bigint> {
 
     const contract = getContract({
       client,
-      chain: u2uTestnet,
+      chain: celoMainnet,
       address: CONTRACT_ADDRESS,
     });
 
@@ -76,10 +69,10 @@ export async function getEntryFee(): Promise<bigint> {
  */
 export async function depositToGame(gameId: string, account: any) {
   try {
-    // Verify user is on U2U Testnet
-    if (account.chain?.id && account.chain.id !== u2uTestnet.id) {
+    // Verify user is on Celo Mainnet
+    if (account.chain?.id && account.chain.id !== celoMainnet.id) {
       throw new Error(
-        `Wrong network! Please switch to U2U Nebulas Testnet (Chain ID: ${u2uTestnet.id})`
+        `Wrong network! Please switch to Celo Mainnet (Chain ID: ${celoMainnet.id})`
       );
     }
 
@@ -88,20 +81,20 @@ export async function depositToGame(gameId: string, account: any) {
     // Get contract instance
     const contract = getContract({
       client,
-      chain: u2uTestnet,
+      chain: celoMainnet,
       address: CONTRACT_ADDRESS,
     });
 
     // Get entry fee from contract
     const entryFee = await getEntryFee();
-    const entryFeeInU2U = ethers.formatEther(entryFee);
+    const entryFeeInCELO = ethers.formatEther(entryFee);
 
     // Convert gameId to bytes32
     const gameIdBytes32 = gameIdToBytes32(gameId);
 
     console.log('🎮 Depositing to game:', gameId);
     console.log('📝 GameId (bytes32):', gameIdBytes32);
-    console.log('💰 Entry fee:', entryFeeInU2U, 'U2U');
+    console.log('💰 Entry fee:', entryFeeInCELO, 'CELO');
     console.log('💰 Entry fee (wei):', entryFee.toString());
     console.log('🌐 Network:', account.chain?.name || 'Unknown', `(Chain ID: ${account.chain?.id || 'N/A'})`);
 
@@ -147,7 +140,7 @@ export async function hasPlayerDeposited(
 
     const contract = getContract({
       client,
-      chain: u2uTestnet,
+      chain: celoMainnet,
       address: CONTRACT_ADDRESS,
     });
 
@@ -178,7 +171,7 @@ export async function getGameDetails(gameId: string) {
 
     const contract = getContract({
       client,
-      chain: u2uTestnet,
+      chain: celoMainnet,
       address: CONTRACT_ADDRESS,
     });
 
@@ -186,7 +179,7 @@ export async function getGameDetails(gameId: string) {
 
     const result = await readContract({
       contract,
-      method: 'function getGameDetails(bytes32 _gameId) external view returns (address[4] memory players, uint256 poolAmount, bool isCompleted, bool hasTransferred)',
+      method: 'function getGameDetails(bytes32 _gameId) external view returns (address[] memory players, uint256 poolAmount, bool isCompleted, bool isCancelled)',
       params: [gameIdBytes32 as `0x${string}`],
     });
 
@@ -194,7 +187,7 @@ export async function getGameDetails(gameId: string) {
       players: Array.from(result[0]) as string[],
       poolAmount: result[1] as bigint,
       isCompleted: result[2] as boolean,
-      hasTransferred: result[3] as boolean,
+      isCancelled: result[3] as boolean,
     };
   } catch (error) {
     console.error('Error getting game details:', error);

@@ -63,6 +63,7 @@ const Sidepanel = ({roomid}: {roomid: string}) => {
                 poolAmt={player.poolAmt}
                 position={index + 1}
                 isCurrentPlayer={currentPlayer === player.id && player.id === walletAddress}
+                ownedBlocks={player.ownedBlocks || []}
               />
             ))
           ) : (

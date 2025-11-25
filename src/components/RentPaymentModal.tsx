@@ -6,12 +6,13 @@ import ModalTemplate from './ModalTemplate';
 interface RentPaymentModalProps {
   isOpen: boolean;
   ownerName: string;
+  ownerWallet: string;
   amount: number;
   propertyName: string;
   onClose: () => void;
 }
 
-const RentPaymentModal = ({ isOpen, ownerName, amount, propertyName, onClose }: RentPaymentModalProps) => {
+const RentPaymentModal = ({ isOpen, ownerName, ownerWallet, amount, propertyName, onClose }: RentPaymentModalProps) => {
   const buttons = (
     <button
       onClick={onClose}
@@ -39,9 +40,15 @@ const RentPaymentModal = ({ isOpen, ownerName, amount, propertyName, onClose }: 
               <p className='text-3xl font-bold text-red-600'>${amount}</p>
             </div>
           </div>
-          <p className='text-lg'>
-            to <span className='font-bold text-green-600'>{ownerName}</span>
-          </p>
+          <div className='space-y-2'>
+            <p className='text-lg'>
+              to <span className='font-bold text-green-600'>{ownerName}</span>
+            </p>
+            <div className='bg-gray-100 border border-gray-300 rounded px-3 py-2'>
+              <p className='text-xs text-gray-500 uppercase'>Owner's Wallet</p>
+              <p className='text-sm font-mono text-gray-700 break-all'>{ownerWallet}</p>
+            </div>
+          </div>
         </div>
       </div>
     </ModalTemplate>
