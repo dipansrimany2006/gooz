@@ -2,7 +2,7 @@
 
 import { createThirdwebClient } from "thirdweb";
 import { ConnectButton } from "thirdweb/react";
-import { u2uTestnet } from "@/utils/contract";
+import { celoMainnet } from "@/utils/contract";
 
 const ConnectWalletButton = () => {
   const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID as string;
@@ -17,19 +17,19 @@ const ConnectWalletButton = () => {
   return (
     <ConnectButton
       client={client}
-      chain={u2uTestnet}
-      chains={[u2uTestnet]}
+      chain={celoMainnet}
+      chains={[celoMainnet]}
       theme="dark"
       connectModal={{
         size: "compact",
-        title: "Connect to U2U Testnet",
+        title: "Connect to Celo Mainnet",
         showThirdwebBranding: false,
       }}
       autoConnect={{
         timeout: 15000,
       }}
       switchButton={{
-        label: "Wrong Network - Switch to U2U Testnet",
+        label: "Wrong Network - Switch to Celo Mainnet",
         style: {
           backgroundColor: "#dc2626",
         },
