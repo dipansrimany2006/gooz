@@ -12,7 +12,7 @@ function HomePage() {
   const router = useRouter();
   const account = useActiveAccount();
   const activeChain = useActiveWalletChain();
-  const { setWalletAddress, setIsConnected, sendMessage, wsConnected, gameId: contextGameId } = useGame();
+  const { setWalletAddress, setIsConnected, sendMessage, wsConnected } = useGame();
 
   const accountId = account?.address || null;
   const isConnected = !!account;
@@ -23,7 +23,8 @@ function HomePage() {
   const [roomId, setRoomId] = useState('');
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isJoiningRoom, setIsJoiningRoom] = useState(false);
-  const [depositStatus, setDepositStatus] = useState<string>('');
+  const [
+    depositStatus, setDepositStatus] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [entryFeeDisplay, setEntryFeeDisplay] = useState<string>('...');
 
@@ -137,11 +138,12 @@ function HomePage() {
         console.log('✅ CREATE_GAME message sent');
         setDepositStatus('✅ Game created! Redirecting...');
 
-        // Wait for game creation response, then navigate
+        // Store the tempGameId in localStorage so /play page can use it
+        localStorage.setItem('gameId', tempGameId);
+
+        // Navigate after a short delay to allow user to see the success message
         setTimeout(() => {
-          if (contextGameId) {
-            router.push('/play');
-          }
+          router.push('/play');
         }, 1500);
       } else {
         throw new Error('Failed to send CREATE_GAME message');
@@ -155,7 +157,7 @@ function HomePage() {
         setIsCreatingRoom(false);
       }, 2000);
     }
-  }, [isConnected, accountId, wsConnected, account, sendMessage, router, contextGameId, entryFeeDisplay]);
+  }, [isConnected, accountId, wsConnected, account, sendMessage, router, entryFeeDisplay]);
 
   const handleJoinRoom = useCallback(async () => {
     if (!isConnected || !accountId || !roomId.trim() || !wsConnected || !account) {

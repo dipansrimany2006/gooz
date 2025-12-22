@@ -4,7 +4,7 @@ import { defineChain, getContract } from 'thirdweb';
 import { createThirdwebClient } from 'thirdweb';
 
 // Contract Configuration - Celo Mainnet
-export const CONTRACT_ADDRESS = '0x2A9caFEDFc91d55E00B6d1514E39BeB940832b5D';
+export const CONTRACT_ADDRESS = '0x39cECF23772596579276303a850cd641c3f152bA';
 
 // Celo Mainnet Chain Definition
 export const celoMainnet = defineChain({
