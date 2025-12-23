@@ -6,7 +6,7 @@ const Sidepanel = ({roomid}: {roomid: string}) => {
   const { serverPlayers, currentPlayer, gameId, isConnected, walletAddress, creatorId, sendMessage, wsConnected } = useGame();
 
   // Define color mapping for players
-  const playerColors = ['#1ABCFE', '#A259FF', '#0ACF83', '#FF7262'];
+  const playerColors = ['#5BC0EB', '#9B7DD2', '#F38375', '#2DD881'];
 
   // Mock wallet addresses for demo (in real app, these would come from server/blockchain)
   const mockWallets = [

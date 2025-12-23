@@ -27,12 +27,18 @@ function HomePage() {
     depositStatus, setDepositStatus] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [entryFeeDisplay, setEntryFeeDisplay] = useState<string>('...');
+  const [showConnectionInfo, setShowConnectionInfo] = useState(false);
 
   // Update wallet state in context when account changes
   useEffect(() => {
     setWalletAddress(accountId);
     setIsConnected(isConnected);
   }, [accountId, isConnected, setWalletAddress, setIsConnected]);
+
+  // Log WebSocket connection status
+  useEffect(() => {
+    console.log(`🔌 WebSocket: ${wsConnected ? 'Server Connected' : 'Connecting...'}`);
+  }, [wsConnected]);
 
   // Debug network detection
   useEffect(() => {
@@ -78,6 +84,28 @@ function HomePage() {
     fetchEntryFee();
   }, [isCorrectNetwork]);
 
+  // Auto-dismiss connection info after 5 seconds
+  useEffect(() => {
+    if (isConnected && isCorrectNetwork) {
+      setShowConnectionInfo(true);
+      const timer = setTimeout(() => {
+        setShowConnectionInfo(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowConnectionInfo(false);
+    }
+  }, [isConnected, isCorrectNetwork]);
+
+  // Auto-dismiss error messages after 5 seconds
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setErrorMessage('');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
 
   const handleCreateRoom = useCallback(async () => {
     if (!isConnected || !accountId || !wsConnected || !account) {
@@ -228,25 +256,11 @@ function HomePage() {
   const isButtonsDisabled = !isConnected || !wsConnected || !isCorrectNetwork;
 
   return (
-    <div className='w-full h-screen bg-[url(/Gooz_bg.png)] flex flex-col items-center justify-center relative'>
+    <div className='w-full min-h-screen bg-[url(/Gooz_bg.png)] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center relative'>
       {/* Header */}
       <div className='absolute top-0 left-0 right-0 flex items-center justify-between px-20 py-6'>
         <img src={"/GoozDotFun.png"} alt='Gooz.Fun Logo'/>
         <div className='flex items-center gap-4'>
-          {/* Network Status Indicator */}
-          {isConnected && (
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isCorrectNetwork ? 'bg-green-600/80' : 'bg-red-600/80'}`}>
-              <div className={`w-2 h-2 rounded-full ${isCorrectNetwork ? 'bg-green-200' : 'bg-red-200'}`}></div>
-              <span className='text-white text-sm font-medium'>
-                {isCorrectNetwork ? '🌐 Celo Mainnet' : `⚠️ Wrong Network (${networkName})`}
-              </span>
-            </div>
-          )}
-          {/* WebSocket Status Indicator */}
-          <div className='flex items-center gap-2 bg-black/50 px-3 py-2 rounded-lg'>
-            <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-            <span className='text-white text-sm'>{wsConnected ? 'Server Connected' : 'Connecting...'}</span>
-          </div>
           <ConnectWalletButton />
         </div>
       </div>
@@ -269,7 +283,7 @@ function HomePage() {
         )}
 
         {/* Debug info when connected to correct network */}
-        {isConnected && isCorrectNetwork && (
+        {showConnectionInfo && (
           <div className='w-[700px] min-h-[40px] flex items-center justify-center'>
             <div className='bg-gray-800/90 text-white text-xs px-4 py-2 rounded border border-gray-600'>
               <p>✓ Connected: Chain ID {currentChainId} = {networkName}</p>
